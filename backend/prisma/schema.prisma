@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id                String       @id @default(uuid())
+  name              String
+  email             String       @unique
+  cpf               String       @unique
+  password          String
+  avatar            String?
+  xp                Int          @default(0)
+  level             Int          @default(1)
+  deletedAt         DateTime?
+  activitiesCreated Activities[]
+}
+
+model Activities {
+  id                String          @id @default(uuid())
+  title             String
+  description       String
+  ActivityTypes     ActivityTypes   @relation(fields: [type], references: [id])
+  type              String
+  confirmationCode  String
+  image             String?
+  scheduledDate     DateTime
+  createdAt         DateTime        @default(now())
+  deletedAt         DateTime?
+  completedAt       DateTime?
+  private           Boolean
+  User              Users           @relation(fields: [creatorId], references: [id])
+  creatorId         String
+  activityAddress   ActivityAddress @relation(fields: [activityAddressId], references: [id])
+  activityAddressId String
+}
+
+model ActivityTypes {
+  id          String       @id @default(uuid())
+  name        String
+  description String
+  image       String
+  Activities  Activities[]
+}
+
+model ActivityAddress {
+  id         String       @id @default(uuid())
+  latitude   Decimal
+  longitude  Decimal
+  activityId String       @unique
+  Activities Activities[]
+}
+
+// model Preferences {
+//   id String @id @default(uuid())
+//   user Users @relation(fields: [userId], references: [id])
+//   userId String 
+//   typeId String
+// }
