@@ -8,43 +8,55 @@ datasource db {
 }
 
 model Users {
-  id                String       @id @default(uuid())
-  name              String
-  email             String       @unique
-  cpf               String       @unique
-  password          String
-  avatar            String?
-  xp                Int          @default(0)
-  level             Int          @default(1)
-  deletedAt         DateTime?
-  activitiesCreated Activities[]
+  id                   String                 @id @default(uuid())
+  name                 String
+  email                String                 @unique
+  cpf                  String                 @unique
+  password             String
+  avatar               String?
+  xp                   Int                    @default(0)
+  level                Int                    @default(1)
+  deletedAt            DateTime?
+  activitiesCreated    Activities[]
+  preferences          Preferences[]
+  ActivityParticipants ActivityParticipants[]
+  UserAchievements     UserAchievements[]
 }
 
 model Activities {
-  id                String          @id @default(uuid())
-  title             String
-  description       String
-  ActivityTypes     ActivityTypes   @relation(fields: [type], references: [id])
-  type              String
-  confirmationCode  String
-  image             String?
-  scheduledDate     DateTime
-  createdAt         DateTime        @default(now())
-  deletedAt         DateTime?
-  completedAt       DateTime?
-  private           Boolean
-  User              Users           @relation(fields: [creatorId], references: [id])
-  creatorId         String
-  activityAddress   ActivityAddress @relation(fields: [activityAddressId], references: [id])
-  activityAddressId String
+  id                   String                 @id @default(uuid())
+  title                String
+  description          String
+  ActivityTypes        ActivityTypes          @relation(fields: [type], references: [id])
+  type                 String
+  confirmationCode     String
+  image                String?
+  scheduledDate        DateTime
+  createdAt            DateTime               @default(now())
+  deletedAt            DateTime?
+  completedAt          DateTime?
+  private              Boolean
+  User                 Users                  @relation(fields: [creatorId], references: [id])
+  creatorId            String
+  activityAddress      ActivityAddress        @relation(fields: [activityAddressId], references: [id])
+  activityAddressId    String
+  ActivityParticipants ActivityParticipants[]
+}
+
+model Achievements {
+  id               String             @id @default(uuid())
+  name             String
+  criterion        String
+  UserAchievements UserAchievements[]
 }
 
 model ActivityTypes {
-  id          String       @id @default(uuid())
+  id          String        @id @default(uuid())
   name        String
   description String
   image       String
   Activities  Activities[]
+  Preferences Preferences[]
 }
 
 model ActivityAddress {
@@ -55,9 +67,28 @@ model ActivityAddress {
   Activities Activities[]
 }
 
-// model Preferences {
-//   id String @id @default(uuid())
-//   user Users @relation(fields: [userId], references: [id])
-//   userId String 
-//   typeId String
-// }
+model ActivityParticipants {
+  id          String     @id @default(uuid())
+  Activities  Activities @relation(fields: [activityId], references: [id])
+  activityId  String
+  Users       Users      @relation(fields: [userId], references: [id])
+  userId      String
+  approved    Boolean
+  confirmedAt DateTime
+}
+
+model Preferences {
+  id            String        @id @default(uuid())
+  user          Users         @relation(fields: [userId], references: [id])
+  userId        String
+  activityTypes ActivityTypes @relation(fields: [typeId], references: [id])
+  typeId        String
+}
+
+model UserAchievements {
+  id            String       @id @default(uuid())
+  User          Users        @relation(fields: [userId], references: [id])
+  userId        String
+  Achievement   Achievements @relation(fields: [achievementId], references: [id])
+  achievementId String
+}
