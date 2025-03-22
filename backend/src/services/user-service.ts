@@ -9,6 +9,7 @@ import {
   createUser,
   getUserByCpf,
 } from "../repository/user-repository";
+import bcrypt from "bcryptjs";
 import { CreateUserData, createUserSchema } from "../types/user-types";
 import z from "zod";
 
@@ -58,5 +59,9 @@ export const registerUser = async (data: CreateUserData) => {
   if (possibleUser) {
     throw new Error("Já existe uma conta com esse cpf");
   }
+
+  const encryptedPassword = await bcrypt.hash(data.password, 10);
+  data.password = encryptedPassword;
+
   return await createUser(data);
 };

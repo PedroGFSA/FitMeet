@@ -1,8 +1,8 @@
 import prisma from "../connection/prisma-client";
-import bcrypt from "bcryptjs";
+
 
 export const getUser = async (id: string) => {
-  return await prisma.users.findUnique({ where: { id, deletedAt: null }, include: { UserAchievements: true} });
+  return await prisma.users.findUnique({ where: { id, deletedAt: null }, include: { Achievements: true} });
 };
 
 export const getUserPreferences = async (id: string) => {
@@ -38,7 +38,7 @@ export const deactivateUser = async (id: string) => {
 };
 
 export const getUserByEmail = async (email: string) => {
-  return await prisma.users.findUnique({ where: { email } });
+  return await prisma.users.findUnique({ where: { email }, include: { Achievements: true } });
 };
 
 export const getUserByCpf = async (cpf: string) => {
@@ -46,8 +46,7 @@ export const getUserByCpf = async (cpf: string) => {
 };
 
 export const createUser = async (data: any) => {
-  const password = await bcrypt.hash(data.password, 5);
   return await prisma.users.create({
-    data: { ...data, password },
+    data,
   });
 }

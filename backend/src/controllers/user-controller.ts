@@ -4,7 +4,7 @@ import HttpStatus from '../enum/httpStatus';
 
 export const getUser = async (req: Request, res: Response) => {
   try {
-    const user = await getUserService(req.params.id);
+    const user = await getUserService(req.userId);
     res.status(HttpStatus.OK).json(user);    
   } catch (error) {
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });

@@ -1,10 +1,20 @@
 import { Router } from "express";
-import { deactivateUser, defineUserPreferences, getUser, getUserPreferences, updateUser, updateUserAvatar } from "../controllers/user-controller";
+import {
+  deactivateUser,
+  defineUserPreferences,
+  getUser,
+  getUserPreferences,
+  updateUser,
+  updateUserAvatar,
+} from "../controllers/user-controller";
+import { authGuard } from "../middlewares/auth-guard";
 
 const userRouter = Router();
 
+userRouter.use(authGuard);
+
 // Buscar dados do usuário
-userRouter.get("/user",  getUser);
+userRouter.get("/user", getUser);
 // Buscar interesses do usuário
 userRouter.get("/user/preferences", getUserPreferences);
 // Definir interesses do usuário
@@ -17,4 +27,3 @@ userRouter.put("/user/update", updateUser);
 userRouter.delete("/user/deactivate", deactivateUser);
 
 export default userRouter;
-
