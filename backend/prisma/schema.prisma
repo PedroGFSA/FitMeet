@@ -20,7 +20,7 @@ model Users {
   activitiesCreated    Activities[]
   preferences          Preferences[]
   ActivityParticipants ActivityParticipants[]
-  UserAchievements     UserAchievements[]
+  Achievements     UserAchievements[]
 }
 
 model Activities {
