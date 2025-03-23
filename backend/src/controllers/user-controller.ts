@@ -11,47 +11,58 @@ export const getUser = async (req: Request, res: Response) => {
   };
 }
 
-export const getUserPreferences = (req: Request, res: Response) => {
+export const getUserPreferences = async (req: Request, res: Response) => {
   try {
-    const preferences = getUserPreferencesService(req.params.id);
+    const preferences = await getUserPreferencesService(req.userId);
     res.status(HttpStatus.OK).json(preferences);
-  } catch (error) {
+  } catch (error: unknown) {
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
   }
 }
 
-export const defineUserPreferences = (req: Request, res: Response) => {
+export const defineUserPreferences = async (req: Request, res: Response) => {
   try {
-    const preferences = defineUserPreferencesService(req.params.id, req.body);
-    res.status(HttpStatus.OK).json(preferences);
+    await defineUserPreferencesService(req.userId, req.body);
+    res.status(HttpStatus.OK).json({ message: "Preferências atualizadas com sucesso." });
   } catch (error) {
+    if ( error instanceof Error ) {
+      res.status(HttpStatus.BAD_REQUEST).json({ error: "Um ou mais IDs informados não são válidos" });
+    }
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
   }
+  return;
 }
 
-export const updateUserAvatar = (req: Request, res: Response) => {
+export const updateUserAvatar = async (req: Request, res: Response) => {
   try {
-    const user = updateUserAvatarService(req.params.id, req.body.avatar);
+    const user = await updateUserAvatarService(req.userId, req.body);
+    res.status(HttpStatus.OK).json(user);
+  } catch (error) {
+    if ( error instanceof Error ) {
+      res.status(HttpStatus.BAD_REQUEST).json({ error: "A imagem informada não é válida" });
+    }
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
+  }
+  return;
+}
+
+export const updateUser = async (req: Request, res: Response) => {
+  try {
+    const user = await updateUserService(req.userId, req.body);
     res.status(HttpStatus.OK).json(user);
   } catch (error) {
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
   }
 }
 
-export const updateUser = (req: Request, res: Response) => {
+export const deactivateUser = async (req: Request, res: Response) => {
   try {
-    const user = updateUserService(req.params.id, req.body);
-    res.status(HttpStatus.OK).json(user);
+    const user = await deactivateUserService(req.userId);
+    res.status(HttpStatus.OK).json({ message: "Conta desativada com sucesso." });
   } catch (error) {
-    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
-  }
-}
-
-export const deactivateUser = (req: Request, res: Response) => {
-  try {
-    const user = deactivateUserService(req.params.id);
-    res.status(HttpStatus.NO_CONTENT).json(user);
-  } catch (error) {
+    if (error instanceof Error) {
+      res.status(HttpStatus.FORBIDDEN).json({ error: error.message });
+    }
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
   }
 }

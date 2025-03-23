@@ -1,7 +1,7 @@
 import {
   getUser,
   getUserPreferences,
-  defineUserPreferences,
+  defineUserPreference,
   updateUser,
   updateUserAvatar,
   deactivateUser,
@@ -10,7 +10,16 @@ import {
   getUserByCpf,
 } from "../repository/user-repository";
 import bcrypt from "bcryptjs";
-import { CreateUserData, createUserSchema } from "../types/user-types";
+import {
+  CreateUserData,
+  createUserSchema,
+  definePreferencesSchema,
+  DefinePreferencesData,
+  updateUserAvatarSchema,
+  UpdateUserAvatarData,
+  updateUserSchema,
+  UpdateUserData
+} from "../types/user-types";
 import z from "zod";
 
 const uuid = z.string().uuid();
@@ -25,38 +34,57 @@ export const getUserPreferencesService = async (id: string) => {
   return await getUserPreferences(id);
 };
 
-// dúvida sobre o body da requisição
 export const defineUserPreferencesService = async (
   id: string,
-  preferences: any
+  preferences: DefinePreferencesData
 ) => {
+  // TODO: not allow duplicates
   uuid.parse(id);
-  return await defineUserPreferences(id, preferences);
+  definePreferencesSchema.parse(preferences);
+  preferences.forEach(async (preference) => {
+    await defineUserPreference(id, preference.typeId);
+  });
+  return;
 };
 
-export const updateUserAvatarService = async (id: string, avatar: string) => {
+export const updateUserAvatarService = async (id: string, data: UpdateUserAvatarData) => {
   uuid.parse(id);
-  return await updateUserAvatar(id, avatar);
+  updateUserAvatarSchema.parse(data); 
+  return await updateUserAvatar(id, data.avatar);
 };
 
-export const updateUserService = async (id: string, data: any) => {
+export const updateUserService = async (id: string, data: UpdateUserData) => {
   uuid.parse(id);
+  updateUserSchema.parse(data);
+  if (data.email) {
+    const possibleUserWithEmail = await getUserByEmail(data.email);
+    if (possibleUserWithEmail) throw new Error("Já existe uma conta com esse email");
+  }
+  if (data.password) {
+    data.password =  await bcrypt.hash(data.password, 10)
+  }
   return await updateUser(id, data);
 };
 
 export const deactivateUserService = async (id: string) => {
   uuid.parse(id);
-  return await deactivateUser(id);
+  const { deletedAt } = await getUser(id);
+  if (deletedAt) {
+    throw new Error("Esta conta foi desativada e não pode ser utilizada.");
+  }
+  const current = new Date();
+  const date = new Date(current.getTime() - current.getTimezoneOffset() * 60000);
+  return await deactivateUser(id, date);
 };
 
 export const registerUser = async (data: CreateUserData) => {
   createUserSchema.parse(data);
-  let possibleUser = await getUserByEmail(data.email);
-  if (possibleUser) {
+  const possibleUserWithEmail = await getUserByEmail(data.email);
+  if (possibleUserWithEmail) {
     throw new Error("Já existe uma conta com esse email");
   }
-  possibleUser = await getUserByCpf(data.cpf);
-  if (possibleUser) {
+  const possibleUserWithCpf = await getUserByCpf(data.cpf);
+  if (possibleUserWithCpf) {
     throw new Error("Já existe uma conta com esse cpf");
   }
 

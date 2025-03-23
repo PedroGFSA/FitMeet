@@ -14,7 +14,8 @@ export const authGuard = async (req: Request, res: Response, next: NextFunction)
   const authHeader = req.headers.authorization;
   
   if (!authHeader) {
-    return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Autenticação necessária.' });
+    res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Autenticação necessária.' });
+    return; 
   }
 
   const token = authHeader.split(' ')[1];
@@ -24,6 +25,7 @@ export const authGuard = async (req: Request, res: Response, next: NextFunction)
     req.userId = user.id;
     next();
   } catch (error : unknown) {
-    return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Autenticação necessária. Token inválido.' });
+    res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Autenticação necessária. Token inválido.' });
+    return;
   }
 }

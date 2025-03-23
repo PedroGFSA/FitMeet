@@ -2,24 +2,27 @@ import prisma from "../connection/prisma-client";
 
 
 export const getUser = async (id: string) => {
-  return await prisma.users.findUnique({ where: { id, deletedAt: null }, include: { Achievements: true} });
+  return await prisma.users.findUnique({ where: { id }, include: { Achievements: true} });
 };
 
 export const getUserPreferences = async (id: string) => {
   return await prisma.users.findUnique({ where: { id, deletedAt: null } }).preferences();
 } 
 
-export const defineUserPreferences = async (id: string, preferences : any) => {
-  return await prisma.users.update({
-    where: { id, deletedAt: null },
-    data: preferences,
-  });
+export const defineUserPreference = async (id: string, activityTypeId : string) => {
+  return await prisma.preferences.create({
+    data: {
+      userId: id,
+      typeId: activityTypeId
+    }
+  })
 };
 
 export const updateUserAvatar = async (id: string, avatar: string) => {
   return await prisma.users.update({
     where: { id, deletedAt: null },
     data: { avatar },
+    select: { avatar: true },
   });
 };
 
@@ -27,13 +30,15 @@ export const updateUser = async (id: string, data: any) => {
   return await prisma.users.update({
     where: { id, deletedAt: null },
     data,
+    omit: { deletedAt: true }
   });
 };
 
-export const deactivateUser = async (id: string) => {
+export const deactivateUser = async (id: string, deletedAt: Date) => {
+ 
   return await prisma.users.update({
     where: { id },
-    data: { deletedAt: new Date().toISOString() },
+    data: { deletedAt: deletedAt.toISOString() },
   });
 };
 
@@ -50,3 +55,4 @@ export const createUser = async (data: any) => {
     data,
   });
 }
+
