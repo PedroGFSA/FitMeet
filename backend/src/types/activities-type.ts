@@ -1,8 +1,8 @@
 import z from 'zod';
 
 export const getActivitiesPaginatedParamsSchema = z.object({
-  skip: z.string().optional().default("0"),
-  take: z.string().optional().default("5"),
+  page: z.string().optional().default("1"),
+  pageSize: z.string().optional().default("10"),
   typeId: z.string().optional(),
   orderBy: z.string().optional(),
   order: z.string().optional(),
@@ -17,3 +17,26 @@ export const getAllActivitiesSchema = z.object({
 });
 
 export type GetAllActivitiesParams = z.infer<typeof getAllActivitiesSchema>;
+
+export const userAndPaginationParamsSchema = z.object({
+  id: z.string().uuid(),
+  page: z.string().optional(),
+  pageSize: z.string().optional(),
+});
+
+export type UserAndPaginationParams = z.infer<typeof userAndPaginationParamsSchema>;
+
+// TODO: validation for scheduledDate so it only accepts future dates
+export const createActivitySchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  type: z.string().uuid(),
+  activityAddressId: z.string().uuid(),
+  image: z.string(),
+  scheduledDate: z.string().datetime(),
+  private: z.boolean(),
+  creatorId: z.string().optional(),
+  confirmationCode: z.string().optional(),
+});
+
+export type CreateActivityData = z.infer<typeof createActivitySchema>;

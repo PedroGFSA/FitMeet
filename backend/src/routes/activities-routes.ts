@@ -1,17 +1,20 @@
 import { Router } from "express";
-import { getActivitiesPaginated, getAllActivities } from "../controllers/activities-controller";
+import { getActivitiesPaginated, getAllActivities, getActivityTypes, getActivitiesCreatedByUser, getAllActivitiesCreatedByUser, getActivitiesUserParticipant, getAllActivitiesUserParticipant, getAllActivityParticipants,
+  createNewActivity
+ } from "../controllers/activities-controller";
 import { authGuard } from "../middlewares/auth-guard";
 
 const activitiesRouter = Router();
 
-activitiesRouter.get("/activities/types", authGuard, () => {});
+activitiesRouter.get("/activities/types", authGuard, getActivityTypes);
 activitiesRouter.get("/activities", authGuard, getActivitiesPaginated);
 activitiesRouter.get("/activities/all", authGuard, getAllActivities);
-activitiesRouter.get("/activities/user/creator", authGuard, () => {});
-activitiesRouter.get("/activities/user/participant", authGuard, () => {});
-activitiesRouter.get("/activities/user/participant/all", authGuard, () => {});
-activitiesRouter.get("/activities/:id/participants", authGuard, () => {});
-activitiesRouter.post("/activities/new", authGuard, () => {});
+activitiesRouter.get("/activities/user/creator", authGuard, getActivitiesCreatedByUser);
+activitiesRouter.get("/activities/user/creator/all", authGuard, getAllActivitiesCreatedByUser);
+activitiesRouter.get("/activities/user/participant", authGuard, getActivitiesUserParticipant);
+activitiesRouter.get("/activities/user/participant/all", authGuard, getAllActivitiesUserParticipant);
+activitiesRouter.get("/activities/:id/participants", authGuard, getAllActivityParticipants);
+activitiesRouter.post("/activities/new", authGuard, createNewActivity);
 activitiesRouter.post("/activities/:id/subscribe", authGuard, () => {});
 activitiesRouter.put("/activities/:id/update", authGuard, () => {});
 activitiesRouter.put("/activities/:id/conclude", authGuard, () => {});
