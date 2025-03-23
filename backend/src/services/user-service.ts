@@ -31,7 +31,8 @@ export const getUserService = async (id: string) => {
 
 export const getUserPreferencesService = async (id: string) => {
   uuid.parse(id);
-  return await getUserPreferences(id);
+  const preferences = await getUserPreferences(id) || [];
+  return preferences;
 };
 
 export const defineUserPreferencesService = async (

@@ -5,8 +5,9 @@ export const getUser = async (id: string) => {
   return await prisma.users.findUnique({ where: { id }, include: { Achievements: true} });
 };
 
+// TODO: deve retornar activitytype e não preferences
 export const getUserPreferences = async (id: string) => {
-  return await prisma.users.findUnique({ where: { id, deletedAt: null } }).preferences();
+  return await prisma.preferences.findMany({ where: { userId: id } });
 } 
 
 export const defineUserPreference = async (id: string, activityTypeId : string) => {
