@@ -40,3 +40,28 @@ export const createActivitySchema = z.object({
 });
 
 export type CreateActivityData = z.infer<typeof createActivitySchema>;
+
+export const updateActivitySchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  type: z.string().uuid().optional(),
+  activityAddressId: z.string().uuid().optional(),
+  image: z.string().optional(),
+  scheduledDate: z.string().datetime().optional(),
+  private: z.boolean().optional(),
+})
+
+export type UpdateActivityData = z.infer<typeof updateActivitySchema>;
+
+export const approveParticipantSchema = z.object({
+  participantId: z.string().uuid(),
+  approved: z.boolean(),
+})
+
+export type ApproveParticipantData = z.infer<typeof approveParticipantSchema>;
+
+export const checkInSchema = z.object({
+  confirmationCode: z.string(),
+})
+
+export type CheckInData = z.infer<typeof checkInSchema>;

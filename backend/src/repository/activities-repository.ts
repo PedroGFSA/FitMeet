@@ -100,3 +100,52 @@ export const getAllActivityParticipants = async (activityId: string) => {
 export const create = async (data: any) => {
   return await prisma.activities.create({ data });
 }
+
+export const getActivityById = async (id: string) => {
+  return await prisma.activities.findUnique({ where: { id } });
+}
+
+export const checkIfAlreadySubcribed = async (activityId: string, userId: string) => {
+  return await prisma.activityParticipants.findFirst({ where: { activityId, userId } });
+}
+
+export const subscribe = async (userId: string, activityId: string, approved: boolean) => {
+  return await prisma.activityParticipants.create({ data: { activityId, userId, approved } });
+}
+
+export const update = async (id: string, data: any) => {
+  return await prisma.activities.update({ where: { id }, data });
+}
+
+export const concludeActivity = async (id: string) => {
+  const current = new Date();
+  const date = new Date(current.getTime() - current.getTimezoneOffset() * 60000);
+  return await prisma.activities.update({ where: { id }, data: { completedAt:  date} });
+}
+
+export const getActivityParticipant = async (activityId: string, userId: string) => {
+  return await prisma.activityParticipants.findFirst({ where: { activityId, userId } });
+}
+
+export const approveParticipantForActivity = async (id: string, approved: boolean) => {
+  return await prisma.activityParticipants.update({ 
+    where: {  id },
+    data: { approved } 
+  });
+}
+
+export const checkIn = async (id: string) => {
+  const current = new Date();
+  const date = new Date(current.getTime() - current.getTimezoneOffset() * 60000);
+  return await prisma.activityParticipants.update({ where: { id }, data: { confirmedAt: date } });
+}
+
+export const unsubscribe = async (id: string) => {
+  return await prisma.activityParticipants.delete({ where: { id } });
+}
+
+export const deleteById = async (id: string) => {
+  const current = new Date();
+  const date = new Date(current.getTime() - current.getTimezoneOffset() * 60000);
+  return await prisma.activities.update({ where: { id }, data: { deletedAt: date } });
+}

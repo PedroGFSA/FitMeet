@@ -1,6 +1,13 @@
 import { Request, Response } from "express";
 import { getActivities, getAll as getEveryActivity, getAllActivityTypes, getCreatedByUser, getAllCreatedByUser,
-  getActivitiesUserIsParticipant, getAllActivitiesUserIsParticipant, getAllParticipantsByActivityId, createActivity
+  getActivitiesUserIsParticipant, getAllActivitiesUserIsParticipant, getAllParticipantsByActivityId, createActivity,
+  subToActivity,
+  updateActivityById,
+  markActivityAsConcluded,
+  approveParticipant,
+  checkInParticipant,
+  unsubscribeFromActivity,
+  deleteActivityById
  } from "../services/activities-service";
 import HttpStatus from "../enum/httpStatus";
 
@@ -112,6 +119,106 @@ export const createNewActivity = async (req: Request, res: Response) => {
       res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
     }
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Erro inesperado." });
+  }
+  return;
+}
+
+export const subscribeToActivity = async (req: Request, res: Response) => {
+  try {
+    const activityId = req.params.id;
+    const response = await subToActivity(req.userId, activityId);
+    res.status(HttpStatus.OK).json(response);
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+    }
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Erro inesperado." });
+  }
+  return;
+}
+
+export const updateActivity = async (req: Request, res: Response) => {
+  try {
+    const activityId = req.params.id;
+    const response = await updateActivityById(activityId, req.body);
+    res.status(HttpStatus.OK).json(response);
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(HttpStatus.BAD_REQUEST).json({ message: error});
+    }
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Erro inesperado." });
+  }
+  return;
+}
+
+export const concludeActivity = async (req: Request, res: Response) => {
+  try {
+    const activityId = req.params.id;
+    await markActivityAsConcluded(activityId);
+    res.status(HttpStatus.OK).json({ message: "Atividade concluída com sucesso." });
+  } catch (error) {
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Erro inesperado." });
+  }
+  return;
+}
+
+export const approveParticipantForActivity = async (req: Request, res: Response) => {
+  try {
+    const activityId = req.params.id;
+    await approveParticipant(activityId, req.body);
+    res.status(HttpStatus.OK).json({ message: "Solicitação de participação aprovada com sucesso." });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+    }
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Erro inesperado." }); 
+  }
+  return;
+}
+
+// weird error when already confirmed
+export const checkInForActivity = async (req: Request, res: Response) => {
+  try {
+    const activityId = req.params.id;
+    const userId = req.userId;
+    await checkInParticipant(activityId, userId, req.body)
+    res.status(HttpStatus.OK).json({ message: "Participação confirmada com sucesso." });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+    } else {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Erro inesperado." });
+    }
+  }
+  return;
+}
+
+export const unsubscribeToActivity = async (req: Request, res: Response) => {
+  try {
+    const activityId = req.params.id;
+    const userId = req.userId;
+    const something = await unsubscribeFromActivity(activityId, userId);
+    res.status(HttpStatus.OK).json({ message: "Participação cancelada com sucesso." });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+    } else {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Erro inesperado." });
+    }
+  }
+}
+
+export const deleteActivity = async (req: Request, res: Response) => {
+  try {
+    const activityId = req.params.id;
+    await deleteActivityById(activityId);
+    res.status(HttpStatus.OK).json({ message: "Atividade deletada com sucesso." });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+    } else {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Erro inesperado." });
+    }
   }
   return;
 }
