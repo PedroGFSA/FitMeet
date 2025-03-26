@@ -8,19 +8,19 @@ datasource db {
 }
 
 model Users {
-  id                   String                 @id @default(uuid())
-  name                 String
-  email                String                 @unique
-  cpf                  String                 @unique
-  password             String
-  avatar               String?
-  xp                   Int                    @default(0)
-  level                Int                    @default(1)
-  deletedAt            DateTime?
-  activitiesCreated    Activities[]
-  preferences          Preferences[]
-  ActivityParticipants ActivityParticipants[]
-  Achievements     UserAchievements[]
+  id                    String                 @id @default(uuid())
+  name                  String
+  email                 String                 @unique
+  cpf                   String                 @unique
+  password              String
+  avatar                String?
+  xp                    Int                    @default(0)
+  level                 Int                    @default(1)
+  deletedAt             DateTime?
+  activitiesCreated     Activities[]
+  preferences           Preferences[]
+  activitiesParticipant ActivityParticipants[]
+  achievements          UserAchievements[]
 }
 
 model Activities {
@@ -36,10 +36,10 @@ model Activities {
   deletedAt            DateTime?
   completedAt          DateTime?
   private              Boolean
-  User                 Users                  @relation(fields: [creatorId], references: [id])
+  creator              Users                  @relation(fields: [creatorId], references: [id])
   creatorId            String
-  activityAddress      ActivityAddress        @relation(fields: [activityAddressId], references: [id])
-  activityAddressId    String
+  address              ActivityAddress        @relation(fields: [addressId], references: [id])
+  addressId            String
   ActivityParticipants ActivityParticipants[]
 }
 
@@ -64,31 +64,31 @@ model ActivityAddress {
   latitude   Decimal
   longitude  Decimal
   activityId String       @unique
-  Activities Activities[]
+  activitiy  Activities[]
 }
 
 model ActivityParticipants {
   id          String     @id @default(uuid())
-  Activities  Activities @relation(fields: [activityId], references: [id])
+  activity    Activities @relation(fields: [activityId], references: [id])
   activityId  String
-  Users       Users      @relation(fields: [userId], references: [id])
+  user        Users      @relation(fields: [userId], references: [id])
   userId      String
   approved    Boolean
   confirmedAt DateTime?
 }
 
 model Preferences {
-  id            String        @id @default(uuid())
-  user          Users         @relation(fields: [userId], references: [id])
-  userId        String
-  activityTypes ActivityTypes @relation(fields: [typeId], references: [id])
-  typeId        String
+  id     String        @id @default(uuid())
+  user   Users         @relation(fields: [userId], references: [id])
+  userId String
+  type   ActivityTypes @relation(fields: [typeId], references: [id])
+  typeId String
 }
 
 model UserAchievements {
   id            String       @id @default(uuid())
-  User          Users        @relation(fields: [userId], references: [id])
+  user          Users        @relation(fields: [userId], references: [id])
   userId        String
-  Achievement   Achievements @relation(fields: [achievementId], references: [id])
+  achievement   Achievements @relation(fields: [achievementId], references: [id])
   achievementId String
 }

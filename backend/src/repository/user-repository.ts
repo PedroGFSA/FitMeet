@@ -2,10 +2,9 @@ import prisma from "../connection/prisma-client";
 
 
 export const getUser = async (id: string) => {
-  return await prisma.users.findUnique({ where: { id }, include: { Achievements: true} });
+  return await prisma.users.findUnique({ where: { id }, include: { achievements: true} });
 };
 
-// TODO: deve retornar activitytype e não preferences
 export const getUserPreferences = async (id: string) => {
   return await prisma.preferences.findMany({ where: { userId: id } });
 } 
@@ -44,7 +43,7 @@ export const deactivateUser = async (id: string, deletedAt: Date) => {
 };
 
 export const getUserByEmail = async (email: string) => {
-  return await prisma.users.findUnique({ where: { email }, include: { Achievements: true } });
+  return await prisma.users.findUnique({ where: { email }, include: { achievements: true } });
 };
 
 export const getUserByCpf = async (cpf: string) => {

@@ -17,7 +17,7 @@ export const getActivitiesPaginated = async (page: number, pageSize: number, typ
     where: { deletedAt: null, type: typeId },
     skip: skip,
     take: take,
-    include: { activityAddress: { omit: { activityId: true } }, User: { select: {id: true, name: true, avatar: true} } },
+    include: { address: { omit: { activityId: true } }, creator: { select: {id: true, name: true, avatar: true} } },
     orderBy: orderConfig 
   });
 
@@ -28,7 +28,7 @@ export const getAllActivities = async (typeId?: string, orderBy?: string, order?
   const orderConfig = orderBy ? { [orderBy]: order?.toLowerCase() } : undefined
   return await prisma.activities.findMany({ 
     where: { deletedAt: null, type: typeId }, 
-    include: { activityAddress: { omit: { activityId: true } }, User: { select: {id: true, name: true, avatar: true} } },
+    include: { address: { omit: { activityId: true } }, creator: { select: {id: true, name: true, avatar: true} } },
     orderBy: orderConfig
   });
 };
@@ -53,7 +53,6 @@ export const getAllActivitiesCreatedByUser = async (userId: string) => {
   return await prisma.activities.findMany({ where: { creatorId: userId, deletedAt: null } });
 }
 
-// TODO: fix relationship of activityaddress and activities so it doesnt create an activityId column 
 export const getActivitiesUserParticipant = async (userId: string, page: number, pageSize: number) => {
   const totalActivities = await prisma.activities.count({ where: { ActivityParticipants: { some: { userId } }, deletedAt: null } });
   const skip = page * pageSize - pageSize;
@@ -65,8 +64,8 @@ export const getActivitiesUserParticipant = async (userId: string, page: number,
     where: { ActivityParticipants: { some: { userId } }, deletedAt: null },
     skip: skip,
     take: take,
-    include: { activityAddress: true },
-    omit: { activityAddressId: true }
+    include: { address: true },
+    omit: { addressId: true }
   });
 
   return { page, pageSize, totalActivities, totalPages, previous, next, activities };
@@ -75,8 +74,8 @@ export const getActivitiesUserParticipant = async (userId: string, page: number,
 export const getAllActivitiesUserParticipant = async (userId: string) => {
   return await prisma.activities.findMany({ 
     where: { ActivityParticipants: { some: { userId } }, deletedAt: null },
-    include: { activityAddress: true }, 
-    omit: { activityAddressId: true }
+    include: { address: true }, 
+    omit: { addressId: true }
   });
 }
 
@@ -89,7 +88,7 @@ export const getAllActivityParticipants = async (activityId: string) => {
       userId: true,
       approved: true,
       confirmedAt: true,
-      Users: {
+      user: {
         select: {
           name: true,
           avatar: true
