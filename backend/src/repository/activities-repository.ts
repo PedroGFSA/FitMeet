@@ -1,6 +1,6 @@
 import prisma from "../connection/prisma-client";
 import { CreateActivityData } from "../types/activities-type";
-//TODO: change approved column to subscriptionStatus
+
 export const getAllTypes = async () => {
   return await prisma.activityTypes.findMany();
 }
@@ -70,32 +70,6 @@ export const getActivitiesUserParticipant = async (userId: string, page: number,
   return { page, pageSize, totalActivities, totalPages, previous, next, activities };
 }
 
-export const getAllActivitiesUserParticipant = async (userId: string) => {
-  return await prisma.activities.findMany({ 
-    where: { ActivityParticipants: { some: { userId } }, deletedAt: null },
-    include: { address: true }, 
-  });
-}
-
-// TODO: try to flatten the final object 
-export const getAllActivityParticipants = async (activityId: string) => {
-  return await prisma.activityParticipants.findMany({ 
-    where: { activityId },
-    select: {
-      id: true,
-      userId: true,
-      approved: true,
-      confirmedAt: true,
-      user: {
-        select: {
-          name: true,
-          avatar: true
-        }
-      }
-    }
-   });
-}
-
 export const create = async (data: any) => {
   const activity = await prisma.activities.create({
     data: {
@@ -122,14 +96,6 @@ export const getActivityById = async (id: string) => {
   return await prisma.activities.findUnique({ where: { id, deletedAt: null } });
 }
 
-export const checkIfAlreadySubcribed = async (activityId: string, userId: string) => {
-  return await prisma.activityParticipants.findFirst({ where: { activityId, userId } });
-}
-
-export const subscribe = async (userId: string, activityId: string, approved: boolean) => {
-  return await prisma.activityParticipants.create({ data: { activityId, userId, approved } });
-}
-
 export const update = async (id: string, data: any) => {
   return await prisma.activities.update({ where: { id }, data });
 }
@@ -138,27 +104,6 @@ export const concludeActivity = async (id: string) => {
   const current = new Date();
   const date = new Date(current.getTime() - current.getTimezoneOffset() * 60000);
   return await prisma.activities.update({ where: { id }, data: { completedAt:  date} });
-}
-
-export const getActivityParticipant = async (activityId: string, userId: string) => {
-  return await prisma.activityParticipants.findFirst({ where: { activityId, userId } });
-}
-
-export const approveParticipantForActivity = async (id: string, approved: boolean) => {
-  return await prisma.activityParticipants.update({ 
-    where: {  id },
-    data: { approved } 
-  });
-}
-
-export const checkIn = async (id: string) => {
-  const current = new Date();
-  const date = new Date(current.getTime() - current.getTimezoneOffset() * 60000);
-  return await prisma.activityParticipants.update({ where: { id }, data: { confirmedAt: date } });
-}
-
-export const unsubscribe = async (id: string) => {
-  return await prisma.activityParticipants.delete({ where: { id } });
 }
 
 export const deleteById = async (id: string) => {
