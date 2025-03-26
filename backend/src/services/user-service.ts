@@ -21,6 +21,8 @@ import {
   UpdateUserData
 } from "../types/user-types";
 import z from "zod";
+import HttpResponseError from "../errors/HttpResponseError";
+import HttpStatus from "../enum/httpStatus";
 
 const uuid = z.string().uuid();
 
@@ -56,10 +58,10 @@ export const updateUserAvatarService = async (id: string, data: UpdateUserAvatar
 
 export const updateUserService = async (id: string, data: UpdateUserData) => {
   uuid.parse(id);
-  updateUserSchema.parse(data);
+  data = updateUserSchema.parse(data);
   if (data.email) {
     const possibleUserWithEmail = await getUserByEmail(data.email);
-    if (possibleUserWithEmail) throw new Error("Já existe uma conta com esse email");
+    if (possibleUserWithEmail) throw new HttpResponseError(HttpStatus.CONFLICT, "Já existe uma conta com esse email");
   }
   if (data.password) {
     data.password =  await bcrypt.hash(data.password, 10)
@@ -71,7 +73,7 @@ export const deactivateUserService = async (id: string) => {
   uuid.parse(id);
   const { deletedAt } = await getUser(id);
   if (deletedAt) {
-    throw new Error("Esta conta foi desativada e não pode ser utilizada.");
+    throw new HttpResponseError(HttpStatus.FORBIDDEN, "Esta conta foi desativada e não pode ser utilizada.");
   }
   const current = new Date();
   const date = new Date(current.getTime() - current.getTimezoneOffset() * 60000);
@@ -82,11 +84,11 @@ export const registerUser = async (data: CreateUserData) => {
   createUserSchema.parse(data);
   const possibleUserWithEmail = await getUserByEmail(data.email);
   if (possibleUserWithEmail) {
-    throw new Error("Já existe uma conta com esse email");
+    throw new HttpResponseError(HttpStatus.CONFLICT, "O e-mail ou CPF informado já pertence a outro usuário.");
   }
   const possibleUserWithCpf = await getUserByCpf(data.cpf);
   if (possibleUserWithCpf) {
-    throw new Error("Já existe uma conta com esse cpf");
+    throw new HttpResponseError(HttpStatus.CONFLICT, "O e-mail ou CPF informado já pertence a outro usuário.");
   }
 
   const encryptedPassword = await bcrypt.hash(data.password, 10);

@@ -1,6 +1,6 @@
 import prisma from "../connection/prisma-client";
 import { CreateActivityData } from "../types/activities-type";
-
+//TODO: change approved column to subscriptionStatus
 export const getAllTypes = async () => {
   return await prisma.activityTypes.findMany();
 }
@@ -17,6 +17,7 @@ export const getActivitiesPaginated = async (page: number, pageSize: number, typ
     where: { deletedAt: null, type: typeId },
     skip: skip,
     take: take,
+    include: { activityAddress: { omit: { activityId: true } }, User: { select: {id: true, name: true, avatar: true} } },
     orderBy: orderConfig 
   });
 
@@ -27,6 +28,7 @@ export const getAllActivities = async (typeId?: string, orderBy?: string, order?
   const orderConfig = orderBy ? { [orderBy]: order?.toLowerCase() } : undefined
   return await prisma.activities.findMany({ 
     where: { deletedAt: null, type: typeId }, 
+    include: { activityAddress: { omit: { activityId: true } }, User: { select: {id: true, name: true, avatar: true} } },
     orderBy: orderConfig
   });
 };
@@ -102,7 +104,7 @@ export const create = async (data: any) => {
 }
 
 export const getActivityById = async (id: string) => {
-  return await prisma.activities.findUnique({ where: { id } });
+  return await prisma.activities.findUnique({ where: { id, deletedAt: null } });
 }
 
 export const checkIfAlreadySubcribed = async (activityId: string, userId: string) => {

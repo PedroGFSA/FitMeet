@@ -1,3 +1,5 @@
+import HttpStatus from "../enum/httpStatus";
+import HttpResponseError from "../errors/HttpResponseError";
 import {
   getActivitiesPaginated,
   getAllActivities,
@@ -81,7 +83,19 @@ export const getAllActivitiesUserIsParticipant = async (userId: string) => {
 }
 
 export const getAllParticipantsByActivityId = async (activityId: string) => {
-  return await getAllActivityParticipants(activityId);
+  const participants = await getAllActivityParticipants(activityId);
+  // Remove objeto aninhado e coloca os dados do objeto user no mesmo nível
+  const response = participants.map(participant => {
+    return {
+      id: participant.id,
+      userId: participant.userId,
+      name: participant.Users.name,
+      avatar: participant.Users.avatar,
+      approved: participant.approved,
+      confirmedAt: participant.confirmedAt,
+    }
+  })
+  return response;
 }
 
 export const createActivity = async (userId: string, data: CreateActivityData) => {
@@ -96,11 +110,11 @@ export const subToActivity = async (userId: string, activityId: string) => {
   let approved : boolean = false;
   console.log('ATIVIDADE:' + activity?.title);
   if (!activity || activity.deletedAt) {
-    throw new Error("Atividade não encontrada");
+    throw new HttpResponseError(HttpStatus.NOT_FOUND, "Atividade não encontrada");
   }
   const alreadySubscribed = await checkIfAlreadySubcribed(activityId, userId);
   if (alreadySubscribed) {
-    throw new Error("Você já se registrou nessa atividade");
+    throw new HttpResponseError(HttpStatus.CONFLICT, "Você já se registrou nessa atividade");
   }
   if (activity?.private === false) {
     approved = true;
@@ -117,7 +131,7 @@ export const updateActivityById = async (id: string, data: UpdateActivityData) =
 export const markActivityAsConcluded = async (id: string) => {
   const checkActivity = await getActivityById(id);
   if (!checkActivity || checkActivity.deletedAt) {
-    throw new Error("Atividade não encontrada");
+    throw new HttpResponseError(HttpStatus.NOT_FOUND, "Atividade não encontrada");
   }
   await concludeActivity(id);
   return;
@@ -128,30 +142,32 @@ export const approveParticipant = async (activityId: string, data: ApprovePartic
   const { participantId, approved } = data;  
   const activityParticipant = await getActivityParticipant(activityId, participantId);
   if (!activityParticipant) {
-    throw new Error("Participante não encontrado");
+    throw new HttpResponseError(HttpStatus.NOT_FOUND, "Participante não encontrado");
   }
   await approveParticipantForActivity(activityParticipant.id, approved);
   return;
 }
 
 export const checkInParticipant = async (activityId: string, userId: string, data: CheckInData) => {
-  checkInSchema.parse(data);
+  data = checkInSchema.parse(data);
   const { confirmationCode: code } = data;
+  
+  const activity = await getActivityById(activityId);
+  if (!activity) {
+    throw new HttpResponseError(HttpStatus.NOT_FOUND, "Atividade não encontrada.");
+  }
+
   const activityParticipant = await getActivityParticipant(activityId, userId);
+  console.log(activityId + '\n' + userId);
   if (!activityParticipant) {
-    throw new Error("Participante não encontrado");
+    throw new HttpResponseError(HttpStatus.NOT_FOUND, "Participante não encontrado.");
   }
   if (activityParticipant.confirmedAt) {
-    throw new Error("Você já confirmou sua participação nessa atividade.");
+    throw new HttpResponseError(HttpStatus.CONFLICT, "Você já confirmou sua participação nessa atividade.");
   }
 
-  const activity = await getActivityById(activityId);
-
-  if (!activity) {
-    throw new Error("Atividade não encontrada");
-  }
   if (activity.confirmationCode !== code) {
-    throw new Error("Código de confirmação inválido");
+    throw new HttpResponseError(HttpStatus.BAD_REQUEST, "Informe os campos obrigatórios corretamente.");
   }
   await checkIn(activityParticipant.id);
   return;
@@ -160,12 +176,12 @@ export const checkInParticipant = async (activityId: string, userId: string, dat
 export const unsubscribeFromActivity = async (activityId: string, userId: string) => {
   const activity = await getActivityById(activityId);
   if (!activity || activity.deletedAt) {
-    throw new Error("Atividade não encontrada.");
+    throw new HttpResponseError(HttpStatus.NOT_FOUND, "Atividade não encontrada.");
   }
 
   const activityParticipant = await getActivityParticipant(activityId, userId);
   if (!activityParticipant) {
-    throw new Error("Você não se inscreveu nessa atividade.");
+    throw new HttpResponseError(HttpStatus.BAD_REQUEST, "Você não se inscreveu nessa atividade.");
   }
   await unsubscribe(activityParticipant.id);
   return;
@@ -174,7 +190,7 @@ export const unsubscribeFromActivity = async (activityId: string, userId: string
 export const deleteActivityById = async (id: string) => {
   const activity = await getActivityById(id);
   if (!activity || activity.deletedAt) {
-    throw new Error("Atividade não encontrada.");
+    throw new HttpResponseError(HttpStatus.NOT_FOUND, "Atividade não encontrada.");
   }
   await deleteById(id);
   return;

@@ -1,0 +1,23 @@
+import { ErrorRequestHandler, NextFunction, Request, Response } from "express";
+import HttpStatus from "../enum/httpStatus";
+import HttpResponseError from "../errors/HttpResponseError";
+import { ZodError } from "zod";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+
+const errorHandler: ErrorRequestHandler = (error: unknown, req: Request, res: Response, next: NextFunction) => {
+  console.log('PATH:' + req.path);
+  if (error instanceof HttpResponseError) {
+    res.status(error.statusCode).json({ message: error.message });
+  } else if (error instanceof ZodError) {
+    res.status(HttpStatus.BAD_REQUEST).json({ message: "Informe os campos obrigatórios corretamente." });
+  } else if (error instanceof PrismaClientKnownRequestError) {
+    res.status(HttpStatus.BAD_REQUEST).json({ message: error})
+  } else if (error instanceof Error) {
+    res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+  } else {
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Erro inesperado." });
+  }
+  next();
+}
+
+export default errorHandler;
