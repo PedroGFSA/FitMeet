@@ -96,11 +96,27 @@ export const getAllActivityParticipants = async (activityId: string) => {
    });
 }
 
-export const create = async (data: any, address : {latitude: number, longitude: number}) => {
-  const activity = await prisma.activities.create({ data });
-  const addressData = { ...address, activityId: activity.id };
-  await prisma.activityAddress.create({ data: addressData });
-}
+export const create = async (data: any) => {
+  const activity = await prisma.activities.create({
+    data: {
+      title: data.title,
+      description: data.description,
+      typeId: data.typeId,
+      image: data.image,
+      scheduledDate: data.scheduledDate,
+      private: data.private,
+      creatorId: data.creatorId,
+      confirmationCode: data.confirmationCode,
+      address: {
+        create: {
+          latitude: data.address.latitude,
+          longitude: data.address.longitude,
+        },
+      },
+    },
+  });
+  return activity;
+};
 
 export const getActivityById = async (id: string) => {
   return await prisma.activities.findUnique({ where: { id, deletedAt: null } });

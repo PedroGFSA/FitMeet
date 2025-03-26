@@ -34,7 +34,7 @@ export const createActivitySchema = z.object({
   address: z.object({
     latitude: z.number(),
     longitude: z.number(),
-  }).optional(),
+  }),
   image: z.string(),
   scheduledDate: z.string().datetime(),
   private: z.boolean(),

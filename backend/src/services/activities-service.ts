@@ -100,11 +100,9 @@ export const getAllParticipantsByActivityId = async (activityId: string) => {
 
 export const createActivity = async (userId: string, data: CreateActivityData) => {
   data = createActivitySchema.parse(data);
-  data = { ...data, creatorId: userId, confirmationCode: Math.floor(100 + Math.random() * 900).toString() };
-  const address = data.address as { latitude: number, longitude: number };
-  delete data.address;
-  console.log(data, address);
-  const activity = await create(data, address);
+  data.creatorId = userId;
+  data.confirmationCode = Math.floor(100 + Math.random() * 900).toString();
+  const activity = await create(data);
   return activity;
 }
 
