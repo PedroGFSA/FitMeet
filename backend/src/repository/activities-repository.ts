@@ -14,7 +14,7 @@ export const getActivitiesPaginated = async (page: number, pageSize: number, typ
   const next = page < totalPages ? page + 1 : null;
   const orderConfig = orderBy ? { [orderBy]: order?.toLowerCase() } : undefined
   const activities = await prisma.activities.findMany({
-    where: { deletedAt: null, type: typeId },
+    where: { deletedAt: null, typeId: typeId },
     skip: skip,
     take: take,
     include: { address: { omit: { activityId: true } }, creator: { select: {id: true, name: true, avatar: true} } },
@@ -27,7 +27,7 @@ export const getActivitiesPaginated = async (page: number, pageSize: number, typ
 export const getAllActivities = async (typeId?: string, orderBy?: string, order?: string ) => {
   const orderConfig = orderBy ? { [orderBy]: order?.toLowerCase() } : undefined
   return await prisma.activities.findMany({ 
-    where: { deletedAt: null, type: typeId }, 
+    where: { deletedAt: null, typeId: typeId }, 
     include: { address: { omit: { activityId: true } }, creator: { select: {id: true, name: true, avatar: true} } },
     orderBy: orderConfig
   });
@@ -65,7 +65,6 @@ export const getActivitiesUserParticipant = async (userId: string, page: number,
     skip: skip,
     take: take,
     include: { address: true },
-    omit: { addressId: true }
   });
 
   return { page, pageSize, totalActivities, totalPages, previous, next, activities };
@@ -75,7 +74,6 @@ export const getAllActivitiesUserParticipant = async (userId: string) => {
   return await prisma.activities.findMany({ 
     where: { ActivityParticipants: { some: { userId } }, deletedAt: null },
     include: { address: true }, 
-    omit: { addressId: true }
   });
 }
 
@@ -98,8 +96,10 @@ export const getAllActivityParticipants = async (activityId: string) => {
    });
 }
 
-export const create = async (data: any) => {
-  return await prisma.activities.create({ data });
+export const create = async (data: any, address : {latitude: number, longitude: number}) => {
+  const activity = await prisma.activities.create({ data });
+  const addressData = { ...address, activityId: activity.id };
+  await prisma.activityAddress.create({ data: addressData });
 }
 
 export const getActivityById = async (id: string) => {

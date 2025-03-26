@@ -30,8 +30,11 @@ export type UserAndPaginationParams = z.infer<typeof userAndPaginationParamsSche
 export const createActivitySchema = z.object({
   title: z.string(),
   description: z.string(),
-  type: z.string().uuid(),
-  activityAddressId: z.string().uuid(),
+  typeId: z.string().uuid(),
+  address: z.object({
+    latitude: z.number(),
+    longitude: z.number(),
+  }).optional(),
   image: z.string(),
   scheduledDate: z.string().datetime(),
   private: z.boolean(),
@@ -44,8 +47,11 @@ export type CreateActivityData = z.infer<typeof createActivitySchema>;
 export const updateActivitySchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
-  type: z.string().uuid().optional(),
-  activityAddressId: z.string().uuid().optional(),
+  typeId: z.string().uuid().optional(),
+  address: z.object({
+    latitude: z.number(),
+    longitude: z.number(),
+  }).optional(),
   image: z.string().optional(),
   scheduledDate: z.string().datetime().optional(),
   private: z.boolean().optional(),

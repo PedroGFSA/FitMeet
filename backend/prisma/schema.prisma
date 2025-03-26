@@ -27,8 +27,8 @@ model Activities {
   id                   String                 @id @default(uuid())
   title                String
   description          String
-  ActivityTypes        ActivityTypes          @relation(fields: [type], references: [id])
-  type                 String
+  type                 ActivityTypes          @relation(fields: [typeId], references: [id])
+  typeId               String
   confirmationCode     String
   image                String
   scheduledDate        DateTime
@@ -38,8 +38,7 @@ model Activities {
   private              Boolean
   creator              Users                  @relation(fields: [creatorId], references: [id])
   creatorId            String
-  address              ActivityAddress        @relation(fields: [addressId], references: [id])
-  addressId            String
+  address              ActivityAddress?
   ActivityParticipants ActivityParticipants[]
 }
 
@@ -60,11 +59,11 @@ model ActivityTypes {
 }
 
 model ActivityAddress {
-  id         String       @id @default(uuid())
+  id         String     @id @default(uuid())
   latitude   Decimal
   longitude  Decimal
-  activityId String       @unique
-  activitiy  Activities[]
+  activityId String     @unique
+  activitiy  Activities @relation(fields: [activityId], references: [id])
 }
 
 model ActivityParticipants {
