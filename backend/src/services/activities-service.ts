@@ -1,4 +1,5 @@
 import HttpStatus from "../enum/httpStatus";
+import subscriptionStatus from "../enum/subscriptionStatus";
 import HttpResponseError from "../errors/HttpResponseError";
 import {
   getActivitiesPaginated,
@@ -7,6 +8,7 @@ import {
   getActivitiesCreatedByUser,
   getAllActivitiesCreatedByUser,
   getActivitiesUserParticipant as findActivitiesUserParticipant,
+  getAllActivitiesUserParticipant as findAllActivitiesUserParticipant,
   create,
   getActivityById,
   update,
@@ -15,13 +17,12 @@ import {
 } from "../repository/activities-repository";
 import {
   approveParticipantForActivity,
-  checkIfAlreadySubcribed,
   checkIn,
   getActivityParticipant,
   getAllActivityParticipants,
   subscribe,
   unsubscribe,
-  getAllActivitiesUserParticipant as findAllActivitiesUserParticipant,
+  countParticipants,
 } from "../repository/activityParticipants-repository";
 import {
   getActivitiesPaginatedParamsSchema,
@@ -45,23 +46,79 @@ export const getAllActivityTypes = async () => {
   return types;
 };
 
-export const getActivities = async (params: GetActivitiesPaginatedParams) => {
+export const getActivities = async (
+  params: GetActivitiesPaginatedParams,
+  userId: string
+) => {
   getActivitiesPaginatedParamsSchema.parse(params);
   const typeId = params.typeId;
   const orderBy = params.orderBy;
   const order = params.order;
-  return await getActivitiesPaginated(
+  const result = await getActivitiesPaginated(
     Number(params.page),
     Number(params.pageSize),
     typeId,
     orderBy,
     order
   );
+  const activities: any = await Promise.all(
+    result.activities.map(async (activity) => {
+      const count = await countParticipants(activity.id);
+      const activityParticipant = await getActivityParticipant(
+        activity.id,
+        userId
+      );
+      let status: string;
+      if (!activityParticipant) {
+        status = subscriptionStatus.NAO_INSCRITO;
+      } else if (activityParticipant.approved) {
+        status = subscriptionStatus.INSCRITO;
+      } else {
+        status = subscriptionStatus.PENDENTE;
+      }
+      return {
+        ...activity,
+        participantCount: count,
+        userSubscriptionStatus: status,
+      };
+    })
+  );
+  return { ...result, activities };
 };
 
-export const getAll = async (params: GetAllActivitiesParams) => {
+export const getAll = async (
+  params: GetAllActivitiesParams,
+  userId: string
+) => {
   getAllActivitiesSchema.parse(params);
-  return await getAllActivities(params.typeId, params.orderBy, params.order);
+  const activities = await getAllActivities(
+    params.typeId,
+    params.orderBy,
+    params.order
+  );
+  const response = await Promise.all(
+    activities.map(async (activity) => {
+      const count = await countParticipants(activity.id);
+      const activityParticipant = await getActivityParticipant(
+        activity.id,
+        userId
+      );
+      let status: string;
+      if (!activityParticipant) {
+        status = subscriptionStatus.NAO_INSCRITO;
+      } else if (activityParticipant.approved) {
+        status = subscriptionStatus.INSCRITO;
+      } else {
+        status = subscriptionStatus.PENDENTE;
+      }
+      return {
+        ...activity,
+        participantCount: count,
+        userSubscriptionStatus: status,
+      };
+    })
+  );
+  return response;
 };
 
 export const getCreatedByUser = async (data: UserAndPaginationParams) => {
@@ -81,27 +138,68 @@ export const getActivitiesUserIsParticipant = async (
   data: UserAndPaginationParams
 ) => {
   userAndPaginationParamsSchema.parse(data);
-  return await findActivitiesUserParticipant(
+  const result = await findActivitiesUserParticipant(
     data.id,
     Number(data.page),
     Number(data.pageSize)
   );
+  const activities = await Promise.all(result.activities.map(async (activity) => {
+    const activityParticipant = await getActivityParticipant(activity.id, data.id);
+    let status: string;
+    if (!activityParticipant) {
+      status = subscriptionStatus.NAO_INSCRITO;
+    } else if (activityParticipant.approved) {
+      status = subscriptionStatus.INSCRITO;
+    } else {
+      status = subscriptionStatus.PENDENTE;
+    }
+    return {
+      ...activity,
+      userSubscriptionStatus: status,
+    };
+  }));
+
+  return { ...result, activities };
 };
 
 export const getAllActivitiesUserIsParticipant = async (userId: string) => {
-  return await findAllActivitiesUserParticipant(userId);
+  const result = await findAllActivitiesUserParticipant(userId);
+  const activities = await Promise.all(result.map(async (activity) => {
+    const activityParticipant = await getActivityParticipant(activity.id, userId);
+    let status: string;
+    if (!activityParticipant) {
+      status = subscriptionStatus.NAO_INSCRITO;
+    } else if (activityParticipant.approved) {
+      status = subscriptionStatus.INSCRITO;
+    } else {
+      status = subscriptionStatus.PENDENTE;
+    }
+    return {
+      ...activity,
+      userSubscriptionStatus: status,
+    };
+  }));
+  return activities;
 };
 
 export const getAllParticipantsByActivityId = async (activityId: string) => {
   const participants = await getAllActivityParticipants(activityId);
   // Remove objeto aninhado e coloca os dados do objeto user no mesmo nível
   const response = participants.map((participant) => {
+    let status: string;
+    if (!participant) {
+      status = subscriptionStatus.NAO_INSCRITO;
+    } else if (participant.approved) {
+      status = subscriptionStatus.INSCRITO;
+    } else {
+      status = subscriptionStatus.PENDENTE;
+    }
     return {
       id: participant.id,
       userId: participant.userId,
       name: participant.user.name,
       avatar: participant.user.avatar,
-      approved: participant.approved,
+      userSubscriptionStatus: status,
       confirmedAt: participant.confirmedAt,
     };
   });
@@ -129,7 +227,7 @@ export const subToActivity = async (userId: string, activityId: string) => {
       "Atividade não encontrada"
     );
   }
-  const alreadySubscribed = await checkIfAlreadySubcribed(activityId, userId);
+  const alreadySubscribed = await getActivityParticipant(activityId, userId);
   if (alreadySubscribed) {
     throw new HttpResponseError(
       HttpStatus.CONFLICT,
@@ -139,8 +237,22 @@ export const subToActivity = async (userId: string, activityId: string) => {
   if (activity?.private === false) {
     approved = true;
   }
-  const response = await subscribe(userId, activityId, approved);
-  return response;
+  const activityParticipant = await subscribe(userId, activityId, approved);
+  let status: string;
+  if (!activityParticipant) {
+    status = subscriptionStatus.NAO_INSCRITO;
+  } else if (activityParticipant.approved) {
+    status = subscriptionStatus.INSCRITO;
+  } else {
+    status = subscriptionStatus.PENDENTE;
+  }
+  return {
+    id: activityParticipant.id,
+    userId: activityParticipant.userId,
+    activityId: activityParticipant.activityId,
+    userSubscriptionStatus: status,
+    confirmedAt: activityParticipant.confirmedAt,
+  };
 };
 
 export const updateActivityById = async (

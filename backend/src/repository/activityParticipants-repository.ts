@@ -1,12 +1,5 @@
 import prisma from "../connection/prisma-client";
 
-export const getAllActivitiesUserParticipant = async (userId: string) => {
-  return await prisma.activities.findMany({ 
-    where: { ActivityParticipants: { some: { userId } }, deletedAt: null },
-    include: { address: true }, 
-  });
-}
-
 export const getAllActivityParticipants = async (activityId: string) => {
   return await prisma.activityParticipants.findMany({ 
     where: { activityId },
@@ -23,10 +16,6 @@ export const getAllActivityParticipants = async (activityId: string) => {
       }
     }
    });
-}
-
-export const checkIfAlreadySubcribed = async (activityId: string, userId: string) => {
-  return await prisma.activityParticipants.findFirst({ where: { activityId, userId } });
 }
 
 export const subscribe = async (userId: string, activityId: string, approved: boolean) => {
@@ -53,3 +42,8 @@ export const checkIn = async (id: string) => {
 export const unsubscribe = async (id: string) => {
   return await prisma.activityParticipants.delete({ where: { id } });
 }
+
+export const countParticipants = async (activityId: string) => {
+  return await prisma.activityParticipants.count({ where: { activityId } });
+}
+

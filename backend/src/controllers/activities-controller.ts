@@ -37,7 +37,7 @@ export const getActivitiesPaginated = asyncWrapper(
       orderBy?: string;
       order?: string;
     };
-    const activities = await getActivities(params);
+    const activities = await getActivities(params, req.userId);
     res.status(HttpStatus.OK).json(activities);
     return;
   }
@@ -45,7 +45,7 @@ export const getActivitiesPaginated = asyncWrapper(
 
 export const getAllActivities = asyncWrapper(
   async (req: Request, res: Response) => {
-    const activities = await getEveryActivity(req.query);
+    const activities = await getEveryActivity(req.query, req.userId);
     res.status(HttpStatus.OK).json(activities);
     return;
   }

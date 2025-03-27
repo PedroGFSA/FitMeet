@@ -17,7 +17,10 @@ export const getActivitiesPaginated = async (page: number, pageSize: number, typ
     where: { deletedAt: null, typeId: typeId },
     skip: skip,
     take: take,
-    include: { address: { omit: { activityId: true } }, creator: { select: {id: true, name: true, avatar: true} } },
+    include: { 
+      address: { omit: { activityId: true, id: true } },
+      creator: { select: {id: true, name: true, avatar: true} },
+    },
     orderBy: orderConfig 
   });
 
@@ -28,11 +31,12 @@ export const getAllActivities = async (typeId?: string, orderBy?: string, order?
   const orderConfig = orderBy ? { [orderBy]: order?.toLowerCase() } : undefined
   return await prisma.activities.findMany({ 
     where: { deletedAt: null, typeId: typeId }, 
-    include: { address: { omit: { activityId: true } }, creator: { select: {id: true, name: true, avatar: true} } },
+    include: { address: { omit: { activityId: true, id: true } }, creator: { select: {id: true, name: true, avatar: true} }},
     orderBy: orderConfig
   });
 };
 
+// TODO: return type name instead of id
 export const getActivitiesCreatedByUser = async (userId: string, page: number, pageSize: number) => {
   const totalActivities = await prisma.activities.count({ where: { creatorId: userId, deletedAt: null } });
   const skip = page * pageSize - pageSize;
@@ -40,17 +44,46 @@ export const getActivitiesCreatedByUser = async (userId: string, page: number, p
   const totalPages = Math.ceil(totalActivities / take);
   const previous = page > 1 ? page - 1 : null;
   const next = page < totalPages ? page + 1 : null;
-  const activities = await prisma.activities.findMany({
+  const result = await prisma.activities.findMany({
     where: { creatorId: userId, deletedAt: null },
+    include: { 
+      address: { omit: { activityId: true, id: true }}, 
+      creator: { select: { id: true, name: true, avatar: true}},
+      _count: { select: { ActivityParticipants: true } }
+    },
     skip: skip,
-    take: take
+    take: take,
   });
-
+  // Cria um novo campo participantCount no json para retornar a quantidade de participantes e remove o campo _count criado pelo prisma
+  const activities = result.map((activity) => {
+    const parsedActivity : any = { 
+      ...activity, 
+      participantCount: activity._count.ActivityParticipants 
+    };
+    delete parsedActivity._count;
+    return parsedActivity;
+  });
   return { page, pageSize, totalActivities, totalPages, previous, next, activities };
 };
 
 export const getAllActivitiesCreatedByUser = async (userId: string) => { 
-  return await prisma.activities.findMany({ where: { creatorId: userId, deletedAt: null } });
+  const result = await prisma.activities.findMany({ 
+    where: { creatorId: userId, deletedAt: null },
+    include: { 
+      address: { omit: { activityId: true, id: true }}, 
+      creator: { select: { id: true, name: true, avatar: true}}, 
+      _count: { select: { ActivityParticipants: true } }
+    },
+   });
+  const activities = result.map((activity) => {
+    const parsedActivity : any = { 
+      ...activity, 
+      participantCount: activity._count.ActivityParticipants 
+    };
+    delete parsedActivity._count;
+    return parsedActivity;
+  });
+  return activities;  
 }
 
 export const getActivitiesUserParticipant = async (userId: string, page: number, pageSize: number) => {
@@ -60,14 +93,48 @@ export const getActivitiesUserParticipant = async (userId: string, page: number,
   const totalPages = Math.ceil(totalActivities / take);
   const previous = page > 1 ? page - 1 : null;
   const next = page < totalPages ? page + 1 : null;
-  const activities = await prisma.activities.findMany({
+  const result = await prisma.activities.findMany({
     where: { ActivityParticipants: { some: { userId } }, deletedAt: null },
     skip: skip,
     take: take,
-    include: { address: true },
+    include: { 
+      address: { omit: { activityId: true, id: true } }, 
+      creator: { select: {id: true, name: true, avatar: true} },
+      _count: { select: { ActivityParticipants: true } }
+    },
+    omit: { creatorId: true }
+  });
+  const activities = result.map((activity) => {
+    const parsedActivity : any = { 
+      ...activity, 
+      participantCount: activity._count.ActivityParticipants 
+    };
+    delete parsedActivity._count;
+    return parsedActivity;
   });
 
   return { page, pageSize, totalActivities, totalPages, previous, next, activities };
+}
+
+export const getAllActivitiesUserParticipant = async (userId: string) => {
+  const result = await prisma.activities.findMany({ 
+    where: { ActivityParticipants: { some: { userId } }, deletedAt: null },
+    include: { 
+      address: { omit: { activityId: true, id: true } }, 
+      creator: { select: {id: true, name: true, avatar: true} },
+      _count: { select: { ActivityParticipants: true } }
+    },
+    omit: {creatorId: true} 
+  });
+  const activities = result.map((activity) => {
+    const parsedActivity : any = { 
+      ...activity, 
+      participantCount: activity._count.ActivityParticipants 
+    };
+    delete parsedActivity._count;
+    return parsedActivity;
+  });
+  return activities;
 }
 
 export const create = async (data: any) => {
@@ -97,7 +164,12 @@ export const getActivityById = async (id: string) => {
 }
 
 export const update = async (id: string, data: any) => {
-  return await prisma.activities.update({ where: { id }, data });
+  return await prisma.activities.update({ 
+    where: { id }, 
+    include: { address: { omit: { activityId: true, id: true }}, creator: {select: {id: true, name: true, avatar: true}} }, 
+    omit: { creatorId: true }, 
+    data 
+  });
 }
 
 export const concludeActivity = async (id: string) => {
