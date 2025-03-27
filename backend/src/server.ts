@@ -4,6 +4,7 @@ import userRouter from './routes/user-routes';
 import authRouter from './routes/auth-routes';
 import activitiesRouter from './routes/activities-routes';
 import errorHandler from './middlewares/error-handler';
+import { createBucket } from './connection/s3-client';
 dotenv.config();
 
 const server = express(); 
@@ -17,7 +18,8 @@ server.use(activitiesRouter);
 
 server.use(errorHandler);
 
-const start = () => {
+const start = async () => {
+  await createBucket()
   server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });

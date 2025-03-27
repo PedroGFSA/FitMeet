@@ -6,7 +6,11 @@ export const getUser = async (id: string) => {
 };
 
 export const getUserPreferences = async (id: string) => {
-  return await prisma.preferences.findMany({ where: { userId: id } });
+  return await prisma.preferences.findMany({ 
+    where: { userId: id }, 
+    include: { type: { select: { name: true, description : true}} }, 
+    omit: { id: true, userId: true }
+  });
 } 
 
 export const defineUserPreference = async (id: string, activityTypeId : string) => {
@@ -50,9 +54,9 @@ export const getUserByCpf = async (cpf: string) => {
   return await prisma.users.findUnique({ where: { cpf } });
 };
 
-export const createUser = async (data: any) => {
+export const createUser = async (data: any, avatar: string) => {
   return await prisma.users.create({
-    data,
+    data: {...data, avatar},
   });
 }
 

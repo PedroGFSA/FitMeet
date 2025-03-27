@@ -155,6 +155,7 @@ export const create = async (data: any) => {
         },
       },
     },
+    include: { address: { omit: { activityId: true, id: true } }, creator: { select: {id: true, name: true, avatar: true} } },
   });
   return activity;
 };
@@ -164,11 +165,12 @@ export const getActivityById = async (id: string) => {
 }
 
 export const update = async (id: string, data: any) => {
+  const address = data.address ? { update: { latitude: data.address.latitude, longitude: data.address.longitude } } : undefined;
   return await prisma.activities.update({ 
     where: { id }, 
     include: { address: { omit: { activityId: true, id: true }}, creator: {select: {id: true, name: true, avatar: true}} }, 
     omit: { creatorId: true }, 
-    data 
+    data: {...data, address}
   });
 }
 

@@ -23,6 +23,7 @@ import {
 import z from "zod";
 import HttpResponseError from "../errors/HttpResponseError";
 import HttpStatus from "../enum/httpStatus";
+import { uploadImage } from "../connection/s3-client";
 
 const uuid = z.string().uuid();
 
@@ -34,14 +35,21 @@ export const getUserService = async (id: string) => {
 export const getUserPreferencesService = async (id: string) => {
   uuid.parse(id);
   const preferences = await getUserPreferences(id) || [];
-  return preferences;
+  const response = preferences.map((preference) => {
+    return {
+      typeId: preference.typeId,
+      typeName: preference.type.name,
+      typeDescription: preference.type.description,
+    }
+  });
+  return response;
 };
 
 export const defineUserPreferencesService = async (
   id: string,
   preferences: DefinePreferencesData
 ) => {
-  // TODO: not allow duplicates
+  // TODO: not allow duplicates and unexsisting types
   uuid.parse(id);
   definePreferencesSchema.parse(preferences);
   preferences.forEach(async (preference) => {
@@ -50,10 +58,16 @@ export const defineUserPreferencesService = async (
   return;
 };
 
-export const updateUserAvatarService = async (id: string, data: UpdateUserAvatarData) => {
+export const updateUserAvatarService = async (id: string, data?: Express.Multer.File) => {
   uuid.parse(id);
-  updateUserAvatarSchema.parse(data); 
-  return await updateUserAvatar(id, data.avatar);
+  if (!data) {
+    throw new HttpResponseError(HttpStatus.BAD_REQUEST, "Informe os campos obrigatórios corretamente.");
+  }
+  if (data.mimetype !== "image/jpeg" && data.mimetype !== "image/png") {
+    throw new HttpResponseError(HttpStatus.BAD_REQUEST, "A imagem deve ser um arquivo PNG ou JPG.");
+  }
+  const url = await uploadImage(data);
+  return await updateUserAvatar(id, url);
 };
 
 export const updateUserService = async (id: string, data: UpdateUserData) => {
@@ -93,6 +107,6 @@ export const registerUser = async (data: CreateUserData) => {
 
   const encryptedPassword = await bcrypt.hash(data.password, 10);
   data.password = encryptedPassword;
-
-  return await createUser(data);
+  const avatar = `${process.env.S3_ENDPOINT}/${process.env.BUCKET_NAME}/default-avatar.png`;
+  return await createUser(data, avatar);
 };

@@ -104,7 +104,7 @@ export const getAllActivityParticipants = asyncWrapper(
 
 export const createNewActivity = asyncWrapper(
   async (req: Request, res: Response) => {
-    const activity = await createActivity(req.userId, req.body);
+    const activity = await createActivity(req.userId, req.body, req.file);
     res.status(HttpStatus.CREATED).json(activity);
     return;
   }
@@ -122,7 +122,7 @@ export const subscribeToActivity = asyncWrapper(
 export const updateActivity = asyncWrapper(
   async (req: Request, res: Response) => {
     const activityId = req.params.id;
-    const response = await updateActivityById(activityId, req.body);
+    const response = await updateActivityById(activityId, req.body, req.file);
     res.status(HttpStatus.OK).json(response);
     return;
   }

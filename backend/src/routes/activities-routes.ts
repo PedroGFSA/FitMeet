@@ -18,6 +18,7 @@ import {
   deleteActivity,
 } from "../controllers/activities-controller";
 import { authGuard } from "../middlewares/auth-guard";
+import upload from "../utils/multer";
 
 const activitiesRouter = Router();
 
@@ -49,13 +50,13 @@ activitiesRouter.get(
   authGuard,
   getAllActivityParticipants
 );
-activitiesRouter.post("/activities/new", authGuard, createNewActivity);
+activitiesRouter.post("/activities/new", authGuard, upload.single("image"), createNewActivity);
 activitiesRouter.post(
   "/activities/:id/subscribe",
   authGuard,
   subscribeToActivity
 );
-activitiesRouter.put("/activities/:id/update", authGuard, updateActivity);
+activitiesRouter.put("/activities/:id/update", authGuard, upload.single("image"), updateActivity);
 activitiesRouter.put("/activities/:id/conclude", authGuard, concludeActivity);
 activitiesRouter.put(
   "/activities/:id/approve",

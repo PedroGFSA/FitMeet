@@ -1,3 +1,4 @@
+import { uploadImage } from "../connection/s3-client";
 import HttpStatus from "../enum/httpStatus";
 import subscriptionStatus from "../enum/subscriptionStatus";
 import HttpResponseError from "../errors/HttpResponseError";
@@ -40,7 +41,7 @@ import {
   CheckInData,
   checkInSchema,
 } from "../types/activities-type";
-
+// TODO: check if activity exists first in some methods
 export const getAllActivityTypes = async () => {
   const types = await getAllTypes();
   return types;
@@ -143,42 +144,52 @@ export const getActivitiesUserIsParticipant = async (
     Number(data.page),
     Number(data.pageSize)
   );
-  const activities = await Promise.all(result.activities.map(async (activity) => {
-    const activityParticipant = await getActivityParticipant(activity.id, data.id);
-    let status: string;
-    if (!activityParticipant) {
-      status = subscriptionStatus.NAO_INSCRITO;
-    } else if (activityParticipant.approved) {
-      status = subscriptionStatus.INSCRITO;
-    } else {
-      status = subscriptionStatus.PENDENTE;
-    }
-    return {
-      ...activity,
-      userSubscriptionStatus: status,
-    };
-  }));
+  const activities = await Promise.all(
+    result.activities.map(async (activity) => {
+      const activityParticipant = await getActivityParticipant(
+        activity.id,
+        data.id
+      );
+      let status: string;
+      if (!activityParticipant) {
+        status = subscriptionStatus.NAO_INSCRITO;
+      } else if (activityParticipant.approved) {
+        status = subscriptionStatus.INSCRITO;
+      } else {
+        status = subscriptionStatus.PENDENTE;
+      }
+      return {
+        ...activity,
+        userSubscriptionStatus: status,
+      };
+    })
+  );
 
   return { ...result, activities };
 };
 
 export const getAllActivitiesUserIsParticipant = async (userId: string) => {
   const result = await findAllActivitiesUserParticipant(userId);
-  const activities = await Promise.all(result.map(async (activity) => {
-    const activityParticipant = await getActivityParticipant(activity.id, userId);
-    let status: string;
-    if (!activityParticipant) {
-      status = subscriptionStatus.NAO_INSCRITO;
-    } else if (activityParticipant.approved) {
-      status = subscriptionStatus.INSCRITO;
-    } else {
-      status = subscriptionStatus.PENDENTE;
-    }
-    return {
-      ...activity,
-      userSubscriptionStatus: status,
-    };
-  }));
+  const activities = await Promise.all(
+    result.map(async (activity) => {
+      const activityParticipant = await getActivityParticipant(
+        activity.id,
+        userId
+      );
+      let status: string;
+      if (!activityParticipant) {
+        status = subscriptionStatus.NAO_INSCRITO;
+      } else if (activityParticipant.approved) {
+        status = subscriptionStatus.INSCRITO;
+      } else {
+        status = subscriptionStatus.PENDENTE;
+      }
+      return {
+        ...activity,
+        userSubscriptionStatus: status,
+      };
+    })
+  );
   return activities;
 };
 
@@ -208,12 +219,27 @@ export const getAllParticipantsByActivityId = async (activityId: string) => {
 
 export const createActivity = async (
   userId: string,
-  data: CreateActivityData
+  data: CreateActivityData,
+  file?: Express.Multer.File
 ) => {
   data = createActivitySchema.parse(data);
+  if (file && file.mimetype !== "image/jpeg" && file.mimetype !== "image/png") {
+    throw new HttpResponseError(
+      HttpStatus.BAD_REQUEST,
+      "A imagem deve ser um arquivo PNG ou JPG."
+    );
+  }
+  const url = file ? await uploadImage(file) : `${process.env.S3_ENDPOINT}/${process.env.BUCKET_NAME}/default-image.jpg`;
+  data.image = url;
   data.creatorId = userId;
   data.confirmationCode = Math.floor(100 + Math.random() * 900).toString();
-  const activity = await create(data);
+  const parsedAddress = JSON.parse(data.address);
+  const parsedData = {
+    ...data,
+    private: data.private == "true",
+    address: parsedAddress,
+  };
+  const activity = await create(parsedData);
   return activity;
 };
 
@@ -257,10 +283,29 @@ export const subToActivity = async (userId: string, activityId: string) => {
 
 export const updateActivityById = async (
   id: string,
-  data: UpdateActivityData
+  data: UpdateActivityData,
+  file?: Express.Multer.File
 ) => {
   updateActivitySchema.parse(data);
-  return update(id, data);
+  if (file && file.mimetype !== "image/jpeg" && file.mimetype !== "image/png") {
+    throw new HttpResponseError(
+      HttpStatus.BAD_REQUEST,
+      "A imagem deve ser um arquivo PNG ou JPG."
+    );
+  }
+  // TODO: add more validations
+  const parsedData : any = { ...data };
+  if (parsedData.address) {
+    parsedData.address = JSON.parse(parsedData.address);
+  }
+  if (parsedData.private) {
+    parsedData.private = parsedData.private == "true";
+  }
+  if (file) {
+    const url = await uploadImage(file);
+    parsedData.image = url;
+  }
+  return update(id, parsedData);
 };
 
 export const markActivityAsConcluded = async (id: string) => {

@@ -34,7 +34,7 @@ export const defineUserPreferences = asyncWrapper(
 
 export const updateUserAvatar = asyncWrapper(
   async (req: Request, res: Response) => {
-    const user = await updateUserAvatarService(req.userId, req.body);
+    const user = await updateUserAvatarService(req.userId, req.file);
     res.status(HttpStatus.OK).json(user);
   }
 );

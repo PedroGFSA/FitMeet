@@ -31,13 +31,12 @@ export const createActivitySchema = z.object({
   title: z.string(),
   description: z.string(),
   typeId: z.string().uuid(),
-  address: z.object({
-    latitude: z.number(),
-    longitude: z.number(),
-  }),
-  image: z.string(),
+  address: z.string(),
+  image: z.string().optional(),
   scheduledDate: z.string().datetime(),
-  private: z.boolean(),
+  private: z.string().refine(value => value == 'true' || value == 'false', {
+    message: "Informe os campos obrigatórios corretamente."
+  }),
   creatorId: z.string().optional(),
   confirmationCode: z.string().optional(),
 });
@@ -48,13 +47,12 @@ export const updateActivitySchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
   typeId: z.string().uuid().optional(),
-  address: z.object({
-    latitude: z.number(),
-    longitude: z.number(),
-  }).optional(),
+  address: z.string().optional(),
   image: z.string().optional(),
   scheduledDate: z.string().datetime().optional(),
-  private: z.boolean().optional(),
+  private: z.string().refine(value => value == 'true' || value == 'false', {
+    message: "Informe os campos obrigatórios corretamente."
+  }).optional(),
 })
 
 export type UpdateActivityData = z.infer<typeof updateActivitySchema>;
