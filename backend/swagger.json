@@ -1,0 +1,36 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Desafio Backend Sysmap",
+    "description": "Documentação da API do desafio",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3333"
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "summary": "Registrar novo usuário",
+        "description": "Endpoint para registar/criar um novo usuário",
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/sign-in": {
+      "post": {
+        "summary": "Login de usuário",
+        "description": "Endpoint para realizar login do usuário com email e senha.",
+        "tags": ["Auth"]
+      }
+    },
+    "/user": {
+      "get": {
+        "summary": "Buscar dados do usuário",
+        "description": "Endpoint para buscar dados do usuário logado/autenticado.",
+        "tags": ["User"]
+      }
+    }
+  }
+}

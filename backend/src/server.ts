@@ -1,6 +1,8 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import swagger from 'swagger-ui-express';
+import docs from '../swagger.json';
 import userRouter from './routes/user-routes';
 import authRouter from './routes/auth-routes';
 import activitiesRouter from './routes/activities-routes';
@@ -13,6 +15,8 @@ const port = process.env.PORT || 3333;
 
 server.use(express.json());
 server.use(cors())
+
+server.use('/docs', swagger.serve, swagger.setup(docs));
 server.use(authRouter);
 server.use(userRouter);
 server.use(activitiesRouter);
