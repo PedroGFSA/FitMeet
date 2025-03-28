@@ -1,5 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import userRouter from './routes/user-routes';
 import authRouter from './routes/auth-routes';
 import activitiesRouter from './routes/activities-routes';
@@ -8,10 +9,10 @@ import { createBucket } from './connection/s3-client';
 dotenv.config();
 
 const server = express(); 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3333;
 
 server.use(express.json());
-
+server.use(cors())
 server.use(authRouter);
 server.use(userRouter);
 server.use(activitiesRouter);
