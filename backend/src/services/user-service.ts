@@ -85,8 +85,11 @@ export const updateUserService = async (id: string, data: UpdateUserData) => {
 
 export const deactivateUserService = async (id: string) => {
   uuid.parse(id);
-  const { deletedAt } = await getUser(id);
-  if (deletedAt) {
+  const user = await getUser(id);
+  if (!user) {
+    throw new HttpResponseError(HttpStatus.NOT_FOUND, "Usuário não encontrado.");
+  }
+  if (user.deletedAt) {
     throw new HttpResponseError(HttpStatus.FORBIDDEN, "Esta conta foi desativada e não pode ser utilizada.");
   }
   const current = new Date();
