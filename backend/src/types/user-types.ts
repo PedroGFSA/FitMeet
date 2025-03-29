@@ -9,9 +9,7 @@ export const createUserSchema = z.object({
 
 export type CreateUserData = z.infer<typeof createUserSchema>;
 
-export const definePreferencesSchema = z.array(z.object({
-  typeId: z.string().uuid()
-}))
+export const definePreferencesSchema = z.array(z.string().uuid());
 
 export type DefinePreferencesData = z.infer<typeof definePreferencesSchema>;
 

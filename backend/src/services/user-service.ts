@@ -53,14 +53,14 @@ export const defineUserPreferencesService = async (
 ) => {
   uuid.parse(userId);
   preferences = definePreferencesSchema.parse(preferences);
-  await Promise.all(preferences.map(async (preference) => {
-    const type = await getTypeById(preference.typeId);
+  await Promise.all(preferences.map(async (typeId) => {
+    const type = await getTypeById(typeId);
     if (!type) {
       throw new HttpResponseError(HttpStatus.BAD_REQUEST, "Um ou mais IDs informados são inválidos.");
     }
-    const existingPreference = await getSingleUserPreference(userId, preference.typeId);
+    const existingPreference = await getSingleUserPreference(userId, typeId);
     if (!existingPreference) {
-      await defineUserPreference(userId, preference.typeId);
+      await defineUserPreference(userId, typeId);
     }
   }));
   return;
