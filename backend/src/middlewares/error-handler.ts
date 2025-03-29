@@ -7,15 +7,15 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 const errorHandler: ErrorRequestHandler = (error: unknown, req: Request, res: Response, next: NextFunction) => {
   console.log('PATH:' + req.path);
   if (error instanceof HttpResponseError) {
-    res.status(error.statusCode).json({ message: error.message });
+    res.status(error.statusCode).json({ error: error.message });
   } else if (error instanceof ZodError) {
-    res.status(HttpStatus.BAD_REQUEST).json({ message: "Informe os campos obrigatórios corretamente." });
+    res.status(HttpStatus.BAD_REQUEST).json({ error: "Informe os campos obrigatórios corretamente." });
   } else if (error instanceof PrismaClientKnownRequestError) {
-    res.status(HttpStatus.BAD_REQUEST).json({ message: error})
+    res.status(HttpStatus.BAD_REQUEST).json({  error: error})
   } else if (error instanceof Error) {
-    res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+    res.status(HttpStatus.BAD_REQUEST).json({ error: error.message });
   } else {
-    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Erro inesperado." });
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: "Erro inesperado." });
   }
   next();
 }
