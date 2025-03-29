@@ -285,7 +285,7 @@
         "tags": ["User"],
         "security": [
           {
-            "Bearer": [ "read:user" ]
+            "bearerAuth": [ "read:user" ]
           }
         ],
         "responses": {
@@ -400,7 +400,7 @@
         "tags": ["User"],
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "responses": {
@@ -487,7 +487,7 @@
         "tags": ["User"],
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "requestBody": {
@@ -595,7 +595,7 @@
         "tags": ["User"],
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "requestBody": {
@@ -704,7 +704,7 @@
         "tags": ["User"],
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "requestBody": {
@@ -843,7 +843,7 @@
         "tags": ["User"],
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "responses": {
@@ -920,7 +920,7 @@
         "description": "Endpoint para listar todos os de atividades disponíveis.",
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "tags": ["Activities"],
@@ -1060,7 +1060,7 @@
         ],
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "responses": {
@@ -1260,7 +1260,7 @@
         ],
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "responses": {
@@ -1402,7 +1402,7 @@
         "tags": ["Activities"],
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "parameters": [
@@ -1589,7 +1589,7 @@
         "tags": ["Activities"],
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "responses": {
@@ -1730,7 +1730,7 @@
         "description": "Endpoint para listar de forma paginada as atividades em que o usuário logado se inscreveu.",
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "tags": ["Activities"],
@@ -1922,7 +1922,7 @@
         "description": "Endpoint para listar todas as atividades em que o usuário se inscreveu sem paginação.",
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "tags": ["Activities"],
@@ -2064,7 +2064,7 @@
         "description": "Endpoint para buscar os participantes de uma atividade específica.",
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "tags": ["Activities"],
@@ -2191,7 +2191,7 @@
         "description": "Endpoint para criar uma atividade",
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "tags": ["Activities"],
@@ -2393,7 +2393,7 @@
         "description": "Endpoint para inscrever-se em uma atividade.",
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "tags": ["Activities"],
@@ -2531,7 +2531,7 @@
         "description": "Endpoint para editar uma atividade existente",
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "tags": ["Activities"],
@@ -2746,7 +2746,7 @@
         "description": "Endpoint para concluir uma atividade",
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "tags": ["Activities"],
@@ -2852,7 +2852,7 @@
         "description": "Endpoint para aprovar ou negar inscrição de participantes em uma atividade privada.",
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "tags": ["Activities"],
@@ -2994,7 +2994,7 @@
         "description": "Endpoint para fazer check-in em uma atividade utilizando o código de confirmação.",
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "tags": ["Activities"],
@@ -3147,7 +3147,7 @@
         "description": "Endpoint para cancelar a inscrição do usuário logado em uma atividade.",
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "tags": ["Activities"],
@@ -3269,7 +3269,7 @@
         "description": "Endpoint para excluir uma atividade existente",
         "security": [
           {
-            "Bearer": []
+            "bearerAuth": []
           }
         ],
         "tags": ["Activities"],
@@ -3367,6 +3367,15 @@
             }
           }
         }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     }
   }
