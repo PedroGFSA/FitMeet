@@ -42,6 +42,7 @@ import {
   CheckInData,
   checkInSchema,
 } from "../types/activities-type";
+import { updateUserXpAndLevel } from "./user-service";
 
 export const getAllActivityTypes = async () => {
   const types = await getAllTypes();
@@ -485,6 +486,10 @@ export const checkInParticipant = async (
     );
   }
   await checkIn(activityParticipant.id);
+  const xp = process.env.DEFAULT_XP_PER_ACTIVITY ? parseInt(process.env.DEFAULT_XP_PER_ACTIVITY) : 100;
+  // Adiciona xp para o usuarios que confirmou presença e para o criador da atividade
+  await updateUserXpAndLevel(userId, xp);
+  await updateUserXpAndLevel(activity.creatorId, xp);
   return;
 };
 

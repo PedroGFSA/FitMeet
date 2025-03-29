@@ -121,3 +121,27 @@ export const registerUser = async (data: CreateUserData) => {
   const avatar = `${process.env.S3_ENDPOINT}/${process.env.BUCKET_NAME}/default-avatar.png`;
   return await createUser(data, avatar);
 };
+
+export const updateUserXpAndLevel = async (userId: string, xp: number) => {
+  const user = await getUser(userId);
+  if (!user) {
+    throw new HttpResponseError(HttpStatus.NOT_FOUND, "Usuário não encontrado.");
+  }
+  if (user.deletedAt) {
+    throw new HttpResponseError(HttpStatus.FORBIDDEN, "Esta conta foi desativada e não pode ser utilizada.");
+  }
+
+  const maxXpPerLevel = process.env.DEFAULT_MAX_XP_PER_LEVEL ? parseInt(process.env.DEFAULT_MAX_XP_PER_LEVEL) : 500;
+  const currentXp = user.xp;
+
+  if (currentXp + xp > maxXpPerLevel) {
+    const newLevel = user.level + 1;
+    const newXp = (currentXp + xp) % maxXpPerLevel;
+    await updateUser(userId, { level: newLevel, xp: newXp });
+  } else if (currentXp + xp < maxXpPerLevel) {
+    const newXp = currentXp + xp;
+    await updateUser(userId, { xp: newXp });
+  } else {
+    await updateUser(userId, { level: user.level + 1, xp: 0 });
+  }
+}
