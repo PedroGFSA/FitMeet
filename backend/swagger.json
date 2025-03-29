@@ -1110,9 +1110,6 @@
                           "image": {
                             "type": "string"
                           },
-                          "confirmationCode": {
-                            "type": "string"
-                          },
                           "participantCount": {
                             "type": "integer"
                           },
@@ -1287,9 +1284,6 @@
                         "type": "string"
                       },
                       "image": {
-                        "type": "string"
-                      },
-                      "confirmationCode": {
                         "type": "string"
                       },
                       "participantCount": {
@@ -1803,9 +1797,6 @@
                           "image": {
                             "type": "string"
                           },
-                          "confirmationCode": {
-                            "type": "string"
-                          },
                           "participantCount": {
                             "type": "integer"
                           },
@@ -1950,9 +1941,6 @@
                         "type": "string"
                       },
                       "image": {
-                        "type": "string"
-                      },
-                      "confirmationCode": {
                         "type": "string"
                       },
                       "participantCount": {

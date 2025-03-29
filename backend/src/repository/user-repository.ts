@@ -63,4 +63,3 @@ export const createUser = async (data: any, avatar: string) => {
     data: {...data, avatar},
   });
 }
-

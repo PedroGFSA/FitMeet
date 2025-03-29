@@ -33,7 +33,7 @@ export const getActivitiesPaginated = async (types: Array<string>, page: number,
       type: { select: { name: true } },
     },
     orderBy: orderConfig,
-    omit: { creatorId: true, typeId: true, deletedAt: true },
+    omit: { creatorId: true, typeId: true, deletedAt: true, confirmationCode: true },
   });
 
   return { page, pageSize, totalActivities, totalPages, previous, next, activities };
@@ -50,7 +50,7 @@ export const getAllActivities = async (types: Array<string>, orderBy?: string, o
       type: { select: { name: true } },
     },
     orderBy: orderConfig,
-    omit: { creatorId: true, typeId: true, deletedAt: true },
+    omit: { creatorId: true, typeId: true, deletedAt: true, confirmationCode: true },
   });
 };
 

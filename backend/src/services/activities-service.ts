@@ -77,7 +77,6 @@ export const getActivities = async (
         userId
       );
       const isCreator = activity.creator.id === userId;
-      const confirmationCode = isCreator ? activity.confirmationCode : undefined;
       let status: string;
       if (!activityParticipant) {
         status = subscriptionStatus.NAO_INSCRITO;
@@ -93,7 +92,6 @@ export const getActivities = async (
         type: activity.type.name,
         participantCount: count,
         userSubscriptionStatus,
-        confirmationCode,
       };
     })
   );
@@ -120,7 +118,6 @@ export const getAll = async (
     activities.map(async (activity) => {
       const count = await countParticipants(activity.id);
       const isCreator = activity.creator.id === userId;
-      const confirmationCode = isCreator ? activity.confirmationCode : undefined;
       const activityParticipant = await getActivityParticipant(
         activity.id,
         userId
@@ -139,7 +136,6 @@ export const getAll = async (
         type: activity.type.name,
         participantCount: count,
         userSubscriptionStatus,
-        confirmationCode,
       };
     })
   );
