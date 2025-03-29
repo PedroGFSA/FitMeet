@@ -278,7 +278,7 @@ export const subToActivity = async (userId: string, activityId: string) => {
       "Atividade não encontrada"
     );
   }
-  // TODO: test this validation
+
   if (activity.creatorId === userId) {
     throw new HttpResponseError(
       HttpStatus.FORBIDDEN,
@@ -286,7 +286,6 @@ export const subToActivity = async (userId: string, activityId: string) => {
     );
   }
 
-  // TODO: test this validation
   if (activity.completedAt) {
     throw new HttpResponseError(
       HttpStatus.FORBIDDEN,
@@ -329,8 +328,9 @@ export const updateActivityById = async (
   file?: Express.Multer.File
 ) => {
   data = updateActivitySchema.parse(data);
+
   const activity = await getActivityById(id);
-  // TODO: test this validation
+
   if (!activity) {
     throw new HttpResponseError(
       HttpStatus.NOT_FOUND,
@@ -372,14 +372,14 @@ export const markActivityAsConcluded = async (id: string, userId: string) => {
       "Atividade não encontrada"
     );
   }
-  // TODO: test this validation
+
   if (activity.creatorId !== userId) {
     throw new HttpResponseError(
       HttpStatus.FORBIDDEN,
       "Apenas o criador da atividade pode concluí-la."
     );
   }
-  // TODO: test this validation
+
   if (activity.completedAt) {
     throw new HttpResponseError(
       HttpStatus.FORBIDDEN,
@@ -397,14 +397,14 @@ export const approveParticipant = async (
 ) => {
   const { participantId, approved } = approveParticipantSchema.parse(data);
   const activity = await getActivityById(activityId);
-  // TODO: test this validation
+
   if (!activity || activity.deletedAt) {
     throw new HttpResponseError(
       HttpStatus.NOT_FOUND,
       "Atividade não encontrada."
     );
   }
-  // TODO: test this validation
+
   if (activity.creatorId !== userId) {
     throw new HttpResponseError(
       HttpStatus.FORBIDDEN,
@@ -418,10 +418,10 @@ export const approveParticipant = async (
   if (!activityParticipant) {
     throw new HttpResponseError(
       HttpStatus.NOT_FOUND,
-      "Participante não encontrado"
+      "Participante não encontrado."
     );
   }
-  // TODO: test this validation
+
   if (activityParticipant.approved) {
     throw new HttpResponseError(
       HttpStatus.BAD_REQUEST,
@@ -449,7 +449,6 @@ export const checkInParticipant = async (
     );
   }
 
-  // TODO: test this validation
   if (activity.completedAt) {
     throw new HttpResponseError(
       HttpStatus.FORBIDDEN,
@@ -465,10 +464,9 @@ export const checkInParticipant = async (
     );
   }
 
-  // TODO: test this validation
   if (activityParticipant.approved === false) {
     throw new HttpResponseError(
-      HttpStatus.BAD_REQUEST,
+      HttpStatus.FORBIDDEN,
       "Apenas participantes aprovados na atividade podem fazer check-in."
     );
   }
@@ -483,7 +481,7 @@ export const checkInParticipant = async (
   if (activity.confirmationCode !== code) {
     throw new HttpResponseError(
       HttpStatus.BAD_REQUEST,
-      "Informe os campos obrigatórios corretamente."
+      "Código de confirmação incorreto."
     );
   }
   await checkIn(activityParticipant.id);
@@ -510,7 +508,6 @@ export const unsubscribeFromActivity = async (
     );
   }
 
-  // TODO: test this validation
   if (activityParticipant.confirmedAt) {
     throw new HttpResponseError(
       HttpStatus.BAD_REQUEST,
@@ -529,7 +526,7 @@ export const deleteActivityById = async (id: string, userId: string) => {
       "Atividade não encontrada."
     );
   }
-  // TODO: test this validation
+  
   if (activity.creatorId !== userId) {
     throw new HttpResponseError(
       HttpStatus.FORBIDDEN,

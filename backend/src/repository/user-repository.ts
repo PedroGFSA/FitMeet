@@ -2,7 +2,7 @@ import prisma from "../connection/prisma-client";
 
 
 export const getUser = async (id: string) => {
-  return await prisma.users.findUnique({ where: { id }, include: { achievements: true} });
+  return await prisma.users.findUnique({ where: { id }, include: { achievements: { include: { achievement: true } } } });
 };
 
 export const getUserPreferences = async (id: string) => {

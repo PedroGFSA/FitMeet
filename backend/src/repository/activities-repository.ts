@@ -54,7 +54,6 @@ export const getAllActivities = async (types: Array<string>, orderBy?: string, o
   });
 };
 
-// TODO: return type name instead of id
 export const getActivitiesCreatedByUser = async (userId: string, page: number, pageSize: number) => {
   const totalActivities = await prisma.activities.count({ where: { creatorId: userId, deletedAt: null } });
   const skip = page * pageSize - pageSize;
@@ -122,15 +121,17 @@ export const getActivitiesUserParticipant = async (userId: string, page: number,
     skip: skip,
     take: take,
     include: { 
-      address: { omit: { activityId: true, id: true } }, 
+      address: { omit: { activityId: true, id: true } },
+      type: { select: { name: true } }, 
       creator: { select: {id: true, name: true, avatar: true} },
       _count: { select: { ActivityParticipants: true } }
     },
-    omit: { creatorId: true }
+    omit: { creatorId: true, deletedAt: true, confirmationCode: true, typeId: true },
   });
   const activities = result.map((activity) => {
     const parsedActivity : any = { 
       ...activity, 
+      type: activity.type.name,
       participantCount: activity._count.ActivityParticipants 
     };
     delete parsedActivity._count;
@@ -145,14 +146,16 @@ export const getAllActivitiesUserParticipant = async (userId: string) => {
     where: { ActivityParticipants: { some: { userId } }, deletedAt: null },
     include: { 
       address: { omit: { activityId: true, id: true } }, 
+      type: { select: { name: true } }, 
       creator: { select: {id: true, name: true, avatar: true} },
       _count: { select: { ActivityParticipants: true } }
     },
-    omit: {creatorId: true} 
+    omit: { creatorId: true, deletedAt: true, confirmationCode: true, typeId: true },
   });
   const activities = result.map((activity) => {
     const parsedActivity : any = { 
       ...activity, 
+      type: activity.type.name,
       participantCount: activity._count.ActivityParticipants 
     };
     delete parsedActivity._count;
@@ -161,6 +164,7 @@ export const getAllActivitiesUserParticipant = async (userId: string) => {
   return activities;
 }
 
+// TODO: remover confirmationCode do retorno?
 export const create = async (data: any) => {
   const activity = await prisma.activities.create({
     data: {
@@ -179,9 +183,18 @@ export const create = async (data: any) => {
         },
       },
     },
-    include: { address: { omit: { activityId: true, id: true } }, creator: { select: {id: true, name: true, avatar: true} } },
+    include: { 
+      address: { omit: { activityId: true, id: true } },
+      creator: { select: {id: true, name: true, avatar: true} },
+      type: { select: { name: true } },
+     },
+     omit: { creatorId: true, typeId: true, deletedAt: true },
   });
-  return activity;
+  const parsedActivity : any = { 
+    ...activity, 
+    type: activity.type.name,
+  };
+  return parsedActivity;
 };
 
 export const getActivityById = async (id: string) => {
@@ -190,12 +203,21 @@ export const getActivityById = async (id: string) => {
 
 export const update = async (id: string, data: any) => {
   const address = data.address ? { update: { latitude: data.address.latitude, longitude: data.address.longitude } } : undefined;
-  return await prisma.activities.update({ 
-    where: { id }, 
-    include: { address: { omit: { activityId: true, id: true }}, creator: {select: {id: true, name: true, avatar: true}} }, 
-    omit: { creatorId: true }, 
+  const activity = await prisma.activities.update({ 
+    where: { id, deletedAt: null }, 
+    include: { 
+      address: { omit: { activityId: true, id: true }}, 
+      creator: {select: {id: true, name: true, avatar: true}},
+      type: { select: { name: true } },
+    }, 
+    omit: { creatorId: true, typeId: true, deletedAt: true },
     data: {...data, address}
   });
+  const parsedActivity : any = { 
+    ...activity, 
+    type: activity.type.name,
+  };
+  return parsedActivity;
 }
 
 export const concludeActivity = async (id: string) => {
