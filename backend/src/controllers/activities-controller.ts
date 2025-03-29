@@ -122,7 +122,7 @@ export const subscribeToActivity = asyncWrapper(
 export const updateActivity = asyncWrapper(
   async (req: Request, res: Response) => {
     const activityId = req.params.id;
-    const response = await updateActivityById(activityId, req.body, req.file);
+    const response = await updateActivityById(activityId, req.body, req.userId, req.file);
     res.status(HttpStatus.OK).json(response);
     return;
   }
@@ -131,7 +131,7 @@ export const updateActivity = asyncWrapper(
 export const concludeActivity = asyncWrapper(
   async (req: Request, res: Response) => {
     const activityId = req.params.id;
-    await markActivityAsConcluded(activityId);
+    await markActivityAsConcluded(activityId, req.userId);
     res
       .status(HttpStatus.OK)
       .json({ message: "Atividade concluída com sucesso." });
@@ -142,7 +142,7 @@ export const concludeActivity = asyncWrapper(
 export const approveParticipantForActivity = asyncWrapper(
   async (req: Request, res: Response) => {
     const activityId = req.params.id;
-    await approveParticipant(activityId, req.body);
+    await approveParticipant(activityId, req.body, req.userId);
     res
       .status(HttpStatus.OK)
       .json({ message: "Solicitação de participação aprovada com sucesso." });
@@ -177,7 +177,7 @@ export const unsubscribeToActivity = asyncWrapper(
 export const deleteActivity = asyncWrapper(
   async (req: Request, res: Response) => {
     const activityId = req.params.id;
-    await deleteActivityById(activityId);
+    await deleteActivityById(activityId, req.userId);
     res
       .status(HttpStatus.OK)
       .json({ message: "Atividade deletada com sucesso." });

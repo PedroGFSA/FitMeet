@@ -5,8 +5,18 @@ export const getAllTypes = async () => {
   return await prisma.activityTypes.findMany();
 }
 
-export const getActivitiesPaginated = async (page: number, pageSize: number, typeId? : string, orderBy?: string, order?: string) => {
-  const totalActivities = await prisma.activities.count({ where: { deletedAt: null } });
+export const getPreferredTypesFromUser = async (userId: string) => {
+  const types = await prisma.preferences.findMany({
+    where: { userId },
+    select: { typeId: true },
+  });
+  const preferredTypes = types.map((type) => type.typeId);
+  return preferredTypes;
+}
+
+export const getActivitiesPaginated = async (types: Array<string>, page: number, pageSize: number, orderBy?: string, order?: string) => {
+  const typeConfig = types.length > 0 ? { in: types } : undefined
+  const totalActivities = await prisma.activities.count({ where: { deletedAt: null, completedAt: null, typeId: typeConfig } });
   const skip = page * pageSize - pageSize;
   const take = pageSize;
   const totalPages = Math.ceil(totalActivities / take);
@@ -14,25 +24,33 @@ export const getActivitiesPaginated = async (page: number, pageSize: number, typ
   const next = page < totalPages ? page + 1 : null;
   const orderConfig = orderBy ? { [orderBy]: order?.toLowerCase() } : undefined
   const activities = await prisma.activities.findMany({
-    where: { deletedAt: null, typeId: typeId },
+    where: { deletedAt: null, completedAt: null, typeId: typeConfig },
     skip: skip,
     take: take,
     include: { 
       address: { omit: { activityId: true, id: true } },
       creator: { select: {id: true, name: true, avatar: true} },
+      type: { select: { name: true } },
     },
-    orderBy: orderConfig 
+    orderBy: orderConfig,
+    omit: { creatorId: true, typeId: true, deletedAt: true },
   });
 
   return { page, pageSize, totalActivities, totalPages, previous, next, activities };
 };
 
-export const getAllActivities = async (typeId?: string, orderBy?: string, order?: string ) => {
+export const getAllActivities = async (types: Array<string>, orderBy?: string, order?: string ) => {
   const orderConfig = orderBy ? { [orderBy]: order?.toLowerCase() } : undefined
+  const typeConfig = types.length > 0 ? { in: types } : undefined
   return await prisma.activities.findMany({ 
-    where: { deletedAt: null, typeId: typeId }, 
-    include: { address: { omit: { activityId: true, id: true } }, creator: { select: {id: true, name: true, avatar: true} }},
-    orderBy: orderConfig
+    where: { deletedAt: null, completedAt: null, typeId: typeConfig }, 
+    include: { 
+      address: { omit: { activityId: true, id: true } }, 
+      creator: { select: {id: true, name: true, avatar: true} },
+      type: { select: { name: true } },
+    },
+    orderBy: orderConfig,
+    omit: { creatorId: true, typeId: true, deletedAt: true },
   });
 };
 
@@ -49,15 +67,18 @@ export const getActivitiesCreatedByUser = async (userId: string, page: number, p
     include: { 
       address: { omit: { activityId: true, id: true }}, 
       creator: { select: { id: true, name: true, avatar: true}},
+      type: { select: { name: true } },
       _count: { select: { ActivityParticipants: true } }
     },
     skip: skip,
     take: take,
+    omit: { creatorId: true, typeId: true, deletedAt: true },
   });
   // Cria um novo campo participantCount no json para retornar a quantidade de participantes e remove o campo _count criado pelo prisma
   const activities = result.map((activity) => {
     const parsedActivity : any = { 
       ...activity, 
+      type: activity.type.name,
       participantCount: activity._count.ActivityParticipants 
     };
     delete parsedActivity._count;
@@ -72,12 +93,15 @@ export const getAllActivitiesCreatedByUser = async (userId: string) => {
     include: { 
       address: { omit: { activityId: true, id: true }}, 
       creator: { select: { id: true, name: true, avatar: true}}, 
-      _count: { select: { ActivityParticipants: true } }
+      _count: { select: { ActivityParticipants: true } },
+      type: { select: { name: true } },
     },
+    omit: { creatorId: true, typeId: true, deletedAt: true },
    });
   const activities = result.map((activity) => {
     const parsedActivity : any = { 
       ...activity, 
+      type: activity.type.name,
       participantCount: activity._count.ActivityParticipants 
     };
     delete parsedActivity._count;

@@ -15,6 +15,7 @@ import {
   update,
   concludeActivity,
   deleteById,
+  getPreferredTypesFromUser,
 } from "../repository/activities-repository";
 import {
   approveParticipantForActivity,
@@ -41,7 +42,7 @@ import {
   CheckInData,
   checkInSchema,
 } from "../types/activities-type";
-// TODO: check if activity exists first in some methods
+
 export const getAllActivityTypes = async () => {
   const types = await getAllTypes();
   return types;
@@ -51,14 +52,19 @@ export const getActivities = async (
   params: GetActivitiesPaginatedParams,
   userId: string
 ) => {
-  getActivitiesPaginatedParamsSchema.parse(params);
-  const typeId = params.typeId;
+  params = getActivitiesPaginatedParamsSchema.parse(params);
+  let preferredTypes: Array<string> = [];
+  if (!params.typeId) {
+    preferredTypes = await getPreferredTypesFromUser(userId);
+  } else {
+    preferredTypes = [params.typeId];
+  }
   const orderBy = params.orderBy;
   const order = params.order;
   const result = await getActivitiesPaginated(
+    preferredTypes,
     Number(params.page),
     Number(params.pageSize),
-    typeId,
     orderBy,
     order
   );
@@ -69,6 +75,8 @@ export const getActivities = async (
         activity.id,
         userId
       );
+      const isCreator = activity.creator.id === userId;
+      const confirmationCode = isCreator ? activity.confirmationCode : undefined;
       let status: string;
       if (!activityParticipant) {
         status = subscriptionStatus.NAO_INSCRITO;
@@ -77,10 +85,14 @@ export const getActivities = async (
       } else {
         status = subscriptionStatus.PENDENTE;
       }
+      const userSubscriptionStatus = isCreator ? undefined : status;
+
       return {
         ...activity,
+        type: activity.type.name,
         participantCount: count,
-        userSubscriptionStatus: status,
+        userSubscriptionStatus,
+        confirmationCode,
       };
     })
   );
@@ -91,15 +103,23 @@ export const getAll = async (
   params: GetAllActivitiesParams,
   userId: string
 ) => {
-  getAllActivitiesSchema.parse(params);
+  params = getAllActivitiesSchema.parse(params);
+  let preferredTypes: Array<string> = [];
+  if (!params.typeId) {
+    preferredTypes = await getPreferredTypesFromUser(userId);
+  } else {
+    preferredTypes = [params.typeId];
+  }
   const activities = await getAllActivities(
-    params.typeId,
+    preferredTypes,
     params.orderBy,
-    params.order
+    params.order,
   );
   const response = await Promise.all(
     activities.map(async (activity) => {
       const count = await countParticipants(activity.id);
+      const isCreator = activity.creator.id === userId;
+      const confirmationCode = isCreator ? activity.confirmationCode : undefined;
       const activityParticipant = await getActivityParticipant(
         activity.id,
         userId
@@ -112,10 +132,13 @@ export const getAll = async (
       } else {
         status = subscriptionStatus.PENDENTE;
       }
+      const userSubscriptionStatus = isCreator ? undefined : status;
       return {
         ...activity,
+        type: activity.type.name,
         participantCount: count,
-        userSubscriptionStatus: status,
+        userSubscriptionStatus,
+        confirmationCode,
       };
     })
   );
@@ -229,7 +252,9 @@ export const createActivity = async (
       "A imagem deve ser um arquivo PNG ou JPG."
     );
   }
-  const url = file ? await uploadImage(file) : `${process.env.S3_ENDPOINT}/${process.env.BUCKET_NAME}/default-image.jpg`;
+  const url = file
+    ? await uploadImage(file)
+    : `${process.env.S3_ENDPOINT}/${process.env.BUCKET_NAME}/default-image.jpg`;
   data.image = url;
   data.creatorId = userId;
   data.confirmationCode = Math.floor(100 + Math.random() * 900).toString();
@@ -253,6 +278,22 @@ export const subToActivity = async (userId: string, activityId: string) => {
       "Atividade não encontrada"
     );
   }
+  // TODO: test this validation
+  if (activity.creatorId === userId) {
+    throw new HttpResponseError(
+      HttpStatus.FORBIDDEN,
+      "O criador da atividade não pode se inscrever como um participante."
+    );
+  }
+
+  // TODO: test this validation
+  if (activity.completedAt) {
+    throw new HttpResponseError(
+      HttpStatus.FORBIDDEN,
+      "Não é possível se inscrever em uma atividade concluída."
+    );
+  }
+
   const alreadySubscribed = await getActivityParticipant(activityId, userId);
   if (alreadySubscribed) {
     throw new HttpResponseError(
@@ -284,9 +325,24 @@ export const subToActivity = async (userId: string, activityId: string) => {
 export const updateActivityById = async (
   id: string,
   data: UpdateActivityData,
+  userId: string,
   file?: Express.Multer.File
 ) => {
-  updateActivitySchema.parse(data);
+  data = updateActivitySchema.parse(data);
+  const activity = await getActivityById(id);
+  // TODO: test this validation
+  if (!activity) {
+    throw new HttpResponseError(
+      HttpStatus.NOT_FOUND,
+      "Atividade não encontrada."
+    );
+  }
+  if (activity.creatorId !== userId) {
+    throw new HttpResponseError(
+      HttpStatus.FORBIDDEN,
+      "Apenas o criador da atividade pode editá-la."
+    );
+  }
   if (file && file.mimetype !== "image/jpeg" && file.mimetype !== "image/png") {
     throw new HttpResponseError(
       HttpStatus.BAD_REQUEST,
@@ -294,7 +350,7 @@ export const updateActivityById = async (
     );
   }
   // TODO: add more validations
-  const parsedData : any = { ...data };
+  const parsedData: any = { ...data };
   if (parsedData.address) {
     parsedData.address = JSON.parse(parsedData.address);
   }
@@ -308,12 +364,26 @@ export const updateActivityById = async (
   return update(id, parsedData);
 };
 
-export const markActivityAsConcluded = async (id: string) => {
-  const checkActivity = await getActivityById(id);
-  if (!checkActivity || checkActivity.deletedAt) {
+export const markActivityAsConcluded = async (id: string, userId: string) => {
+  const activity = await getActivityById(id);
+  if (!activity || activity.deletedAt) {
     throw new HttpResponseError(
       HttpStatus.NOT_FOUND,
       "Atividade não encontrada"
+    );
+  }
+  // TODO: test this validation
+  if (activity.creatorId !== userId) {
+    throw new HttpResponseError(
+      HttpStatus.FORBIDDEN,
+      "Apenas o criador da atividade pode concluí-la."
+    );
+  }
+  // TODO: test this validation
+  if (activity.completedAt) {
+    throw new HttpResponseError(
+      HttpStatus.FORBIDDEN,
+      "A atividade já foi concluída."
     );
   }
   await concludeActivity(id);
@@ -322,10 +392,25 @@ export const markActivityAsConcluded = async (id: string) => {
 
 export const approveParticipant = async (
   activityId: string,
-  data: ApproveParticipantData
+  data: ApproveParticipantData,
+  userId: string
 ) => {
-  approveParticipantSchema.parse(data);
-  const { participantId, approved } = data;
+  const { participantId, approved } = approveParticipantSchema.parse(data);
+  const activity = await getActivityById(activityId);
+  // TODO: test this validation
+  if (!activity || activity.deletedAt) {
+    throw new HttpResponseError(
+      HttpStatus.NOT_FOUND,
+      "Atividade não encontrada."
+    );
+  }
+  // TODO: test this validation
+  if (activity.creatorId !== userId) {
+    throw new HttpResponseError(
+      HttpStatus.FORBIDDEN,
+      "Apenas o criador da atividade pode aprovar ou negar participantes."
+    );
+  }
   const activityParticipant = await getActivityParticipant(
     activityId,
     participantId
@@ -336,6 +421,14 @@ export const approveParticipant = async (
       "Participante não encontrado"
     );
   }
+  // TODO: test this validation
+  if (activityParticipant.approved) {
+    throw new HttpResponseError(
+      HttpStatus.BAD_REQUEST,
+      "Participante já aprovado."
+    );
+  }
+
   await approveParticipantForActivity(activityParticipant.id, approved);
   return;
 };
@@ -356,14 +449,30 @@ export const checkInParticipant = async (
     );
   }
 
+  // TODO: test this validation
+  if (activity.completedAt) {
+    throw new HttpResponseError(
+      HttpStatus.FORBIDDEN,
+      "Não é possível confirmar presença em uma atividade concluída."
+    );
+  }
+
   const activityParticipant = await getActivityParticipant(activityId, userId);
-  console.log(activityId + "\n" + userId);
   if (!activityParticipant) {
     throw new HttpResponseError(
       HttpStatus.NOT_FOUND,
       "Participante não encontrado."
     );
   }
+
+  // TODO: test this validation
+  if (activityParticipant.approved === false) {
+    throw new HttpResponseError(
+      HttpStatus.BAD_REQUEST,
+      "Apenas participantes aprovados na atividade podem fazer check-in."
+    );
+  }
+
   if (activityParticipant.confirmedAt) {
     throw new HttpResponseError(
       HttpStatus.CONFLICT,
@@ -400,11 +509,19 @@ export const unsubscribeFromActivity = async (
       "Você não se inscreveu nessa atividade."
     );
   }
+
+  // TODO: test this validation
+  if (activityParticipant.confirmedAt) {
+    throw new HttpResponseError(
+      HttpStatus.BAD_REQUEST,
+      "Não é possível cancelar sua inscrição, pois sua presença já foi confirmada."
+    );
+  }
   await unsubscribe(activityParticipant.id);
   return;
 };
 
-export const deleteActivityById = async (id: string) => {
+export const deleteActivityById = async (id: string, userId: string) => {
   const activity = await getActivityById(id);
   if (!activity || activity.deletedAt) {
     throw new HttpResponseError(
@@ -412,6 +529,14 @@ export const deleteActivityById = async (id: string) => {
       "Atividade não encontrada."
     );
   }
+  // TODO: test this validation
+  if (activity.creatorId !== userId) {
+    throw new HttpResponseError(
+      HttpStatus.FORBIDDEN,
+      "Apenas o criador da atividade pode excluí-la."
+    );
+  }
+
   await deleteById(id);
   return;
 };

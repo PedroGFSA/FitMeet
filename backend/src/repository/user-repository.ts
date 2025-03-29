@@ -13,6 +13,10 @@ export const getUserPreferences = async (id: string) => {
   });
 } 
 
+export const getSingleUserPreference = async (id: string, typeId: string) => {
+  return await prisma.preferences.findFirst({ where: { userId: id, typeId } });
+ }
+
 export const defineUserPreference = async (id: string, activityTypeId : string) => {
   return await prisma.preferences.create({
     data: {

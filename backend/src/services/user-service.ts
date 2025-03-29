@@ -8,6 +8,7 @@ import {
   getUserByEmail,
   createUser,
   getUserByCpf,
+  getSingleUserPreference,
 } from "../repository/user-repository";
 import bcrypt from "bcryptjs";
 import {
@@ -24,6 +25,7 @@ import z from "zod";
 import HttpResponseError from "../errors/HttpResponseError";
 import HttpStatus from "../enum/httpStatus";
 import { uploadImage } from "../connection/s3-client";
+import { getTypeById } from "../repository/activityTypes-repository";
 
 const uuid = z.string().uuid();
 
@@ -46,15 +48,21 @@ export const getUserPreferencesService = async (id: string) => {
 };
 
 export const defineUserPreferencesService = async (
-  id: string,
+  userId: string,
   preferences: DefinePreferencesData
 ) => {
-  // TODO: not allow duplicates and unexsisting types
-  uuid.parse(id);
-  definePreferencesSchema.parse(preferences);
-  preferences.forEach(async (preference) => {
-    await defineUserPreference(id, preference.typeId);
-  });
+  uuid.parse(userId);
+  preferences = definePreferencesSchema.parse(preferences);
+  await Promise.all(preferences.map(async (preference) => {
+    const type = await getTypeById(preference.typeId);
+    if (!type) {
+      throw new HttpResponseError(HttpStatus.BAD_REQUEST, "Um ou mais IDs informados são inválidos.");
+    }
+    const existingPreference = await getSingleUserPreference(userId, preference.typeId);
+    if (!existingPreference) {
+      await defineUserPreference(userId, preference.typeId);
+    }
+  }));
   return;
 };
 
