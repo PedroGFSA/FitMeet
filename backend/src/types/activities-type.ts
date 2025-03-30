@@ -26,7 +26,6 @@ export const userAndPaginationParamsSchema = z.object({
 
 export type UserAndPaginationParams = z.infer<typeof userAndPaginationParamsSchema>;
 
-// TODO: validation for scheduledDate so it only accepts future dates
 export const createActivitySchema = z.object({
   title: z.string(),
   description: z.string(),

@@ -1,7 +1,9 @@
 import { uploadImage } from "../connection/s3-client";
+import { Achievements } from "../enum/achievements";
 import HttpStatus from "../enum/httpStatus";
 import subscriptionStatus from "../enum/subscriptionStatus";
 import HttpResponseError from "../errors/HttpResponseError";
+import { getAchievementByName } from "../repository/achievements-repository";
 import {
   getActivitiesPaginated,
   getAllActivities,
@@ -16,6 +18,7 @@ import {
   concludeActivity,
   deleteById,
   getPreferredTypesFromUser,
+  checkIfConcludedAny,
 } from "../repository/activities-repository";
 import {
   approveParticipantForActivity,
@@ -25,7 +28,9 @@ import {
   subscribe,
   unsubscribe,
   countParticipants,
+  checkIfConfirmedAny,
 } from "../repository/activityParticipants-repository";
+import { getSingleUserAchievement, grantAchievement } from "../repository/userAchievement-repository";
 import {
   getActivitiesPaginatedParamsSchema,
   GetActivitiesPaginatedParams,
@@ -42,7 +47,7 @@ import {
   CheckInData,
   checkInSchema,
 } from "../types/activities-type";
-import { updateUserXpAndLevel } from "./user-service";
+import { getUserService, updateUserXpAndLevel } from "./user-service";
 
 export const getAllActivityTypes = async () => {
   const types = await getAllTypes();
@@ -261,6 +266,12 @@ export const createActivity = async (
     private: data.private == "true",
     address: parsedAddress,
   };
+  // checa achievement de criar primeira atividade
+  const userActivities = await getAllCreatedByUser(userId);
+  if (userActivities.length === 0) {
+    const achievement = await getAchievementByName(Achievements.CRIADOR_INICIANTE);
+    if (achievement) await grantAchievement(userId, achievement.id);
+  }
   const activity = await create(parsedData);
   return activity;
 };
@@ -346,7 +357,6 @@ export const updateActivityById = async (
       "A imagem deve ser um arquivo PNG ou JPG."
     );
   }
-  // TODO: add more validations
   const parsedData: any = { ...data };
   if (parsedData.address) {
     parsedData.address = JSON.parse(parsedData.address);
@@ -383,6 +393,16 @@ export const markActivityAsConcluded = async (id: string, userId: string) => {
       "A atividade já foi concluída."
     );
   }
+
+  const concluded = await checkIfConcludedAny(userId); 
+  if (!concluded) {
+    const achievement = await getAchievementByName(Achievements.AMBICIOSO);
+    if (achievement) {
+      const userAchievement = await getSingleUserAchievement(userId, achievement.id);
+      if (!userAchievement) await grantAchievement(userId, achievement.id);
+    }
+  }
+
   await concludeActivity(id);
   return;
 };
@@ -481,11 +501,33 @@ export const checkInParticipant = async (
       "Código de confirmação incorreto."
     );
   }
+  
+  const confirmed = await checkIfConfirmedAny(userId); 
+  if (!confirmed) {
+    const achievement = await getAchievementByName(Achievements.PIONEIRO);
+    // verifica se ja tem o achievement
+    if (achievement) {
+      const userAchievement = await getSingleUserAchievement(userId, achievement.id);
+      if (!userAchievement) await grantAchievement(userId, achievement.id);
+    }
+  }
+
   await checkIn(activityParticipant.id);
   const xp = process.env.DEFAULT_XP_PER_ACTIVITY ? parseInt(process.env.DEFAULT_XP_PER_ACTIVITY) : 100;
   // Adiciona xp para o usuarios que confirmou presença e para o criador da atividade
   await updateUserXpAndLevel(userId, xp);
   await updateUserXpAndLevel(activity.creatorId, xp);
+
+  // veririfica o achievement de atingir level 5
+  const user = await getUserService(userId);
+  if (user.level >= 5) {
+    const achievement = await getAchievementByName(Achievements.EXPLORADOR);
+    if (achievement) {
+      const userAchievement = await getSingleUserAchievement(userId, achievement.id);
+      if (!userAchievement) await grantAchievement(userId, achievement.id);
+    }
+  }
+
   return;
 };
 

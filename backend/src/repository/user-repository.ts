@@ -2,7 +2,7 @@ import prisma from "../connection/prisma-client";
 
 
 export const getUser = async (id: string) => {
-  return await prisma.users.findUnique({ where: { id }, include: { achievements: { include: { achievement: true } } } });
+  return await prisma.users.findUnique({ where: { id } });
 };
 
 export const updateUserAvatar = async (id: string, avatar: string) => {

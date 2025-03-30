@@ -24,6 +24,7 @@ import HttpStatus from "../enum/httpStatus";
 import { uploadImage } from "../connection/s3-client";
 import { getTypeById } from "../repository/activityTypes-repository";
 import { defineUserPreference, getSingleUserPreference, getUserPreferences } from "../repository/preferences-repository";
+import { getUserAchievements } from "../repository/userAchievement-repository";
 
 const uuid = z.string().uuid();
 
@@ -31,6 +32,8 @@ export const getUserService = async (id: string) => {
   uuid.parse(id);
   const response: any = await getUser(id);
   delete response.deletedAt;
+  const achievements = await getUserAchievements(id);
+  response.achievements = achievements;
   return response;
 };
 
@@ -120,7 +123,7 @@ export const registerUser = async (data: CreateUserData) => {
 
   const encryptedPassword = await bcrypt.hash(data.password, 10);
   data.password = encryptedPassword;
-  const avatar = `${process.env.S3_ENDPOINT}/${process.env.BUCKET_NAME}/default-avatar.png`;
+  const avatar = `${process.env.S3_ENDPOINT}/${process.env.BUCKET_NAME}/default-avatar.jpg`;
   return await createUser(data, avatar);
 };
 

@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import HttpResponseError from "../errors/HttpResponseError";
 import HttpStatus from "../enum/httpStatus";
+import { getUserAchievements } from "../repository/userAchievement-repository";
 
 export const signIn = async (data: SignInData) => {
   const { email, password } = signInSchema.parse(data);
@@ -20,6 +21,7 @@ export const signIn = async (data: SignInData) => {
   }
   
   const token = jwt.sign(user, process.env.JWT_SECRET!, { expiresIn: '1d' });
-  return {token, ...user};
+  const achievements = await getUserAchievements(user.id);
+  return {token, ...user, achievements};
 };
 

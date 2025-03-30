@@ -164,7 +164,6 @@ export const getAllActivitiesUserParticipant = async (userId: string) => {
   return activities;
 }
 
-// TODO: remover confirmationCode do retorno?
 export const create = async (data: any) => {
   const activity = await prisma.activities.create({
     data: {
@@ -231,3 +230,7 @@ export const deleteById = async (id: string) => {
   const date = new Date(current.getTime() - current.getTimezoneOffset() * 60000);
   return await prisma.activities.update({ where: { id }, data: { deletedAt: date } });
 }
+
+export const checkIfConcludedAny = async (userId: string) => {
+  return await prisma.activities.findFirst({ where: { creatorId: userId, completedAt: { not: null } } });
+};
