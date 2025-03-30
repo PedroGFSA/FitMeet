@@ -7,8 +7,7 @@
     "dev": "tsx --watch src/server.ts",
     "build": "tsc",
     "start": "prisma migrate dev && prisma db seed && node dist/server.js",
-    "test": "jest",
-    "upload-default": "tsx scripts/uploadDefaultImages.ts"
+    "test": "jest"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
