@@ -1,14 +1,11 @@
 import {
   getUser,
-  getUserPreferences,
-  defineUserPreference,
   updateUser,
   updateUserAvatar,
   deactivateUser,
   getUserByEmail,
   createUser,
   getUserByCpf,
-  getSingleUserPreference,
 } from "../repository/user-repository";
 import bcrypt from "bcryptjs";
 import {
@@ -26,6 +23,7 @@ import HttpResponseError from "../errors/HttpResponseError";
 import HttpStatus from "../enum/httpStatus";
 import { uploadImage } from "../connection/s3-client";
 import { getTypeById } from "../repository/activityTypes-repository";
+import { defineUserPreference, getSingleUserPreference, getUserPreferences } from "../repository/preferences-repository";
 
 const uuid = z.string().uuid();
 
