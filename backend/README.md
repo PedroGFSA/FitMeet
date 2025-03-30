@@ -13,11 +13,11 @@ Para usar a aplicação conteinerizada basta ter o docker instalado na máquina.
 ### 1. Clonar ou baixar o repositório no github
 ### 2. Fazer o build da imagem da API presente no Dockerfile
 
->  `docker built -t api .`
+ `docker built -t api .`
 
 ### 3. Rodar os conteineres das imagens do `compose.yml`
 
-> `docker compose up` ou `docker compose up -d` 
+ `docker compose up` ou `docker compose up -d` 
 
 (Pode acontecer um erro ao rodar a API caso o banco de dados não esteja rodando ainda na porta, caso aconteça basta reiniciar o conteiner da API)
 
