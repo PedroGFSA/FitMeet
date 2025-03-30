@@ -8,6 +8,8 @@ import authRouter from './routes/auth-routes';
 import activitiesRouter from './routes/activities-routes';
 import errorHandler from './middlewares/error-handler';
 import { createBucket } from './connection/s3-client';
+import { uploadDefaultImages } from './utils/uploadDefaultImages';
+
 dotenv.config();
 
 const server = express(); 
@@ -25,6 +27,7 @@ server.use(errorHandler);
 
 const start = async () => {
   await createBucket()
+  await uploadDefaultImages();
   server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });

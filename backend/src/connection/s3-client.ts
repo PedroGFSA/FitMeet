@@ -6,7 +6,7 @@ import {
 
 const bucketName = process.env.BUCKET_NAME!;
 
-const s3 = new S3Client({
+export const s3 = new S3Client({
   region: process.env.AWS_REGION!,
   endpoint: process.env.S3_ENDPOINT!,
   credentials: {
