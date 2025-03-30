@@ -5,7 +5,6 @@ import { ZodError } from "zod";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 const errorHandler: ErrorRequestHandler = (error: unknown, req: Request, res: Response, next: NextFunction) => {
-  console.log('PATH:' + req.path);
   if (error instanceof HttpResponseError) {
     res.status(error.statusCode).json({ error: error.message });
   } else if (error instanceof ZodError) {
@@ -13,7 +12,7 @@ const errorHandler: ErrorRequestHandler = (error: unknown, req: Request, res: Re
   } else if (error instanceof PrismaClientKnownRequestError) {
     res.status(HttpStatus.BAD_REQUEST).json({  error: error})
   } else if (error instanceof Error) {
-    res.status(HttpStatus.BAD_REQUEST).json({ error: error.message });
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: "Erro inesperado." });
   } else {
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: "Erro inesperado." });
   }

@@ -31,7 +31,9 @@ const uuid = z.string().uuid();
 
 export const getUserService = async (id: string) => {
   uuid.parse(id);
-  return await getUser(id);
+  const response: any = await getUser(id);
+  delete response.deletedAt;
+  return response;
 };
 
 export const getUserPreferencesService = async (id: string) => {
@@ -88,7 +90,9 @@ export const updateUserService = async (id: string, data: UpdateUserData) => {
   if (data.password) {
     data.password =  await bcrypt.hash(data.password, 10)
   }
-  return await updateUser(id, data);
+  const response: any = await updateUser(id, data);
+  delete response.deletedAt;
+  return response;
 };
 
 export const deactivateUserService = async (id: string) => {
@@ -106,7 +110,7 @@ export const deactivateUserService = async (id: string) => {
 };
 
 export const registerUser = async (data: CreateUserData) => {
-  createUserSchema.parse(data);
+  data = createUserSchema.parse(data);
   const possibleUserWithEmail = await getUserByEmail(data.email);
   if (possibleUserWithEmail) {
     throw new HttpResponseError(HttpStatus.CONFLICT, "O e-mail ou CPF informado já pertence a outro usuário.");
