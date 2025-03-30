@@ -10,7 +10,7 @@ const errorHandler: ErrorRequestHandler = (error: unknown, req: Request, res: Re
   } else if (error instanceof ZodError) {
     res.status(HttpStatus.BAD_REQUEST).json({ error: "Informe os campos obrigatórios corretamente." });
   } else if (error instanceof PrismaClientKnownRequestError) {
-    res.status(HttpStatus.BAD_REQUEST).json({  error: error})
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({  error: "Erro inesperado." })
   } else if (error instanceof Error) {
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: "Erro inesperado." });
   } else {
