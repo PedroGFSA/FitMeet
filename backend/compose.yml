@@ -8,6 +8,11 @@ services:
       POSTGRES_DB: desafio
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   
   localstack:
     image: localstack/localstack
@@ -19,6 +24,11 @@ services:
       AWS_DEFAULT_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localstack:4566 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   api:
     build:
@@ -28,5 +38,7 @@ services:
     ports:
       - "3333:3333"
     depends_on:
-      - postgresql
-      - localstack
+      postgresql:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
