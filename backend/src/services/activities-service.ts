@@ -148,7 +148,7 @@ export const getAll = async (
 };
 
 export const getCreatedByUser = async (data: UserAndPaginationParams) => {
-  userAndPaginationParamsSchema.parse(data);
+  data = userAndPaginationParamsSchema.parse(data);
   return getActivitiesCreatedByUser(
     data.id,
     Number(data.page),
@@ -163,7 +163,7 @@ export const getAllCreatedByUser = async (userId: string) => {
 export const getActivitiesUserIsParticipant = async (
   data: UserAndPaginationParams
 ) => {
-  userAndPaginationParamsSchema.parse(data);
+  data = userAndPaginationParamsSchema.parse(data);
   const result = await findActivitiesUserParticipant(
     data.id,
     Number(data.page),
@@ -279,7 +279,6 @@ export const createActivity = async (
 export const subToActivity = async (userId: string, activityId: string) => {
   const activity = await getActivityById(activityId);
   let approved: boolean = false;
-  console.log("ATIVIDADE:" + activity?.title);
   if (!activity || activity.deletedAt) {
     throw new HttpResponseError(
       HttpStatus.NOT_FOUND,
