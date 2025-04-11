@@ -1,12 +1,20 @@
-import { useState } from 'react'
+import { Routes, Route } from 'react-router'
 import './App.css'
-
+import AuthContainer from './components/AuthContainer'
+import Login from './pages/Login'
 function App() {
 
   return (
-    <>
-      <h1>Hello World</h1>
-    </>
+    <Routes>
+      <Route path='/login' element={<Login />} />
+      <Route path='/register' element={<h1>Hello World</h1>} />
+      <Route path='/' element={<AuthContainer/>}>
+        <Route path="activities">
+          <Route index element={<h1>Activities</h1>} />
+          <Route path=":id" element={<h1 className="text-3xl text-blue-500">Activity</h1>} />
+        </Route>
+      </Route>
+    </Routes>
   )
 }
 
