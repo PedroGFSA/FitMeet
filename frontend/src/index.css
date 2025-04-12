@@ -145,3 +145,7 @@
 .bg-primary-500 {
   background-color: var(--color-primary-500);
 }
+
+button.bg-primary-500:hover {
+  background-color: var(--color-primary-600);
+}

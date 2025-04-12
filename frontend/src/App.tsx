@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router'
+import { Routes, Route, Outlet } from 'react-router'
 import './App.css'
 import AuthContainer from './components/AuthContainer'
 import Login from './pages/Login'
@@ -8,7 +8,8 @@ function App() {
     <Routes>
       <Route path='/login' element={<Login />} />
       <Route path='/register' element={<h1>Hello World</h1>} />
-      <Route path='/' element={<AuthContainer/>}>
+      <Route path='/' element={<><AuthContainer/> <Outlet/></>}>
+        <Route path='home' element={<h1>Home</h1>} />
         <Route path="activities">
           <Route index element={<h1>Activities</h1>} />
           <Route path=":id" element={<h1 className="text-3xl text-blue-500">Activity</h1>} />
