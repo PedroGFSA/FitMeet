@@ -2,12 +2,14 @@ import { Routes, Route, Outlet } from 'react-router'
 import './App.css'
 import AuthContainer from './components/AuthContainer'
 import Login from './pages/Login'
+import Register from './pages/Register'
+
 function App() {
 
   return (
     <Routes>
       <Route path='/login' element={<Login />} />
-      <Route path='/register' element={<h1>Hello World</h1>} />
+      <Route path='/register' element={<Register />} />
       <Route path='/' element={<><AuthContainer/> <Outlet/></>}>
         <Route path='home' element={<h1>Home</h1>} />
         <Route path="activities">

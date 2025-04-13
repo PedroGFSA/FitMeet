@@ -149,3 +149,16 @@
 button.bg-primary-500:hover {
   background-color: var(--color-primary-600);
 }
+
+.slide-from-top {
+  animation: slide-from-top 0.3s ease-in-out;
+}
+
+@keyframes slide-from-top {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
