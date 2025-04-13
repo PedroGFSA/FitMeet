@@ -10,7 +10,7 @@ function App() {
     <Routes>
       <Route path='/login' element={<Login />} />
       <Route path='/register' element={<Register />} />
-      <Route path='/' element={<><AuthContainer/> <Outlet/></>}>
+      <Route path='/' element={<><AuthContainer><Outlet/></AuthContainer></>}>
         <Route path='home' element={<h1>Home</h1>} />
         <Route path="activities">
           <Route index element={<h1>Activities</h1>} />
