@@ -6,7 +6,6 @@ function Header() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userLevel = user?.level;
   const userAvatar = user?.avatar;
-  console.log(userAvatar);
 
   return (
     <div className="flex justify-between items-center pt-6 pb-12 px-[110px]">
