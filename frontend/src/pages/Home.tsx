@@ -2,7 +2,7 @@ import ActivitiesByType from "@/components/layout/activitiesByType";
 import ActivityCard from "@/components/layout/activityCard";
 import Header from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
-import { Activity, PaginatedActivities } from "@/types/activity";
+import { Activity } from "@/types/activity";
 import { ActivityType } from "@/types/activityType";
 import { useEffect, useState } from "react";
 
@@ -57,16 +57,14 @@ export default function Home() {
           <div className="flex justify-start items-center pb-4">
             <h3 className="text-[28px]/8  font-bebas-neue">TIPOS DE ATIVIDADES</h3>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <ul className="flex flex-wrap gap-3">
             {activityTypes.map((activityType) => (
-              <ul key={activityType.id}>
-                <li className="flex flex-col items-center gap-2 p-[5px]">
+                <li key={activityType.id} className="flex flex-col items-center gap-2 p-[5px]">
                   <img src={activityType.image} alt={activityType.name} className="w-20 h-20 rounded-full" />
                   <span className="text-neutral-900 text-md/5 font-semibold mt-3">{activityType.name}</span>
                 </li>
-              </ul>
             ))}
-          </div>
+          </ul>
         </section>
         <section className="pb-[27px]">
           <div className="grid grid-cols-2 gap-y-10 gap-x-7">

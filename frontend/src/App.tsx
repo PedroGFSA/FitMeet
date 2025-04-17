@@ -12,11 +12,11 @@ function App() {
       <Route path='/login' element={<Login />} />
       <Route path='/register' element={<Register />} />
       <Route path='/' element={<><AuthContainer><Outlet/></AuthContainer></>}>
-        <Route path='home' element={<Home />} />
-        <Route path="activities">
-          <Route index element={<h1>Activities</h1>} />
-          <Route path=":id" element={<h1 className="text-3xl text-blue-500">Activity</h1>} />
-        </Route>
+          <Route path='home' element={<Home />} />
+          <Route path="activities">
+              <Route index element={<h1>Activities</h1>} />
+              <Route path=":id" element={<h1 className="text-3xl text-blue-500">Activity</h1>} />
+          </Route>
       </Route>
     </Routes>
   )

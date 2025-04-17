@@ -1,7 +1,7 @@
 import { CirclePlus } from "lucide-react";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-
+import CreateActivity from "../common/CreateActivity";
 function Header() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userLevel = user?.level;
@@ -11,10 +11,7 @@ function Header() {
     <div className="flex justify-between items-center pt-6 pb-12 px-[110px]">
       <img src="src/assets/images/logo.png" alt="logo" className="" />
       <div className="flex items-center justify-center gap-5">
-        <Button variant="default" className="bg-primary-500 text-white rounded-sm px-3 py-5 font-bold text-sm/6 hover:cursor-pointer">
-          <i><CirclePlus/></i>
-          Criar atividade
-        </Button>
+        <CreateActivity />
         <div className="relative">
           <Avatar  className="w-12 h-12 border-2 border-white outline-2 outline-emerald-500 ">
             <AvatarImage src={userAvatar} />

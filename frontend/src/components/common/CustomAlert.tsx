@@ -7,16 +7,20 @@ interface CustomAlertProps {
   variant: "default" | "destructive";
   success: boolean;
   timer?: number;
+  onClose?: (b : boolean) => void;
 }
 
-export const CustomAlert = ({ title, description, variant = "default", success = false, timer = 3000 }: CustomAlertProps) => {
+export const CustomAlert = ({ title, description, variant = "default", success = false, timer = 3000, onClose }: CustomAlertProps) => {
   const [showAlert, setShowAlert] = useState(true);
 
   useEffect(() => {
     setTimeout(() => {
       setShowAlert(false);
+      if (onClose) {
+        onClose(showAlert);
+      }
     }, timer);
-  }, [timer]);
+  }, [timer, onClose, showAlert]);
 
   return (
     <Alert variant={variant} className={`${showAlert ? "opacity-100" : "opacity-0 pointer-events-none"} max-w-md absolute top-5 left-1/2 -translate-x-1/2 transition-all duration-300 slide-from-top`}>

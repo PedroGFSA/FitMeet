@@ -162,3 +162,7 @@ button.bg-primary-500:hover {
     transform: translateY(0);
   }
 }
+
+* {
+  scrollbar-width: none;
+}
