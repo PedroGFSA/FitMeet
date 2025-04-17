@@ -52,7 +52,6 @@ export default function CreateActivity() {
       lng: position.coords.longitude
     });
   }, (error) => {
-    console.log(error);
     setAddress({
       lat: -10.9472,
       lng: -37.0731,
@@ -104,7 +103,6 @@ export default function CreateActivity() {
       longitude: data.address.lng
     });
     formData.append('address', parsedAddress);
-    console.log(formData);
     fetch(`${import.meta.env.VITE_API_URL}/activities/new`, {
       method: 'POST',
       body: formData,
@@ -169,7 +167,7 @@ export default function CreateActivity() {
                       <ul className= "flex overflow-x-auto gap-2 p-[4px]" style={{ scrollbarWidth: 'initial' }}>
                         {activityTypes.map((type: ActivityType) => (
                           <li key={type.id} className="flex flex-col items-center gap-3">
-                            <div className={`w-21 h-21 bg-neutral-100 flex items-center justify-center rounded-full hover:cursor-pointer  ${selectedTypeId === type.id ? 'border-2 border-white outline-2 outline-emerald-500' : ' border-2 border-white outline-2 outline-white '}`} onClick={() => setSelectedTypeId(type.id)}>
+                            <div className={`w-21 h-21 bg-neutral-100 flex items-center justify-center rounded-full hover:cursor-pointer  ${selectedTypeId === type.id ? 'border-2 border-white outline-2 outline-emerald-500' : 'border-2 border-white outline-2 outline-white'}`} onClick={() => setSelectedTypeId(type.id)}>
                               <img src={type.image} alt={type.name} className="w-full h-full rounded-full" />
                             </div>
                             <span className="text-neutral-900 text-md/5 font-semibold">{type.name}</span>
@@ -182,7 +180,7 @@ export default function CreateActivity() {
                   <div className="relative">
                     <label htmlFor="" className="text-md/5 text-neutral-700 font-semibold">Ponto de encontro<span className="text-red-600">*</span></label>
                     <div className="mt-1.5 h-[208px] w-full">
-                      <CustomMap onCoordinatesChange={(coords: Coordinates) => {setAddress(coords); console.log(address)}} defaultCenter={address} mapId={import.meta.env.VITE_MAP_ID} />
+                      <CustomMap onCoordinatesChange={(coords: Coordinates) => {setAddress(coords)}} defaultCenter={address} mapId={import.meta.env.VITE_MAP_ID} />
                     </div>
                     {errors.address && <p className="text-red-600 text-sm px-1 pl-2 absolute -bottom-6">Ponto de encontro inválido</p>}
                   </div>

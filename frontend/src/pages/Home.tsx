@@ -1,3 +1,5 @@
+import { CustomAlert } from "@/components/common/CustomAlert";
+import PreferencesModal from "@/components/common/PreferencesModal";
 import ActivitiesByType from "@/components/layout/activitiesByType";
 import ActivityCard from "@/components/layout/activityCard";
 import Header from "@/components/layout/header";
@@ -9,6 +11,8 @@ import { useEffect, useState } from "react";
 export default function Home() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activityTypes, setActivityTypes] = useState<ActivityType[]>([]);
+  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
+  const [preferencesDefinedNotification, setPreferencesDefinedNotification] = useState(false);
   const jwtToken = localStorage.getItem('token');
 
   useEffect(() => {
@@ -25,6 +29,21 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL}/user/preferences`, {
+      headers: {
+        'Authorization': `Bearer ${jwtToken}`
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
+      if (data.length === 0) {
+        setShowPreferencesModal(true);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
     const fetchActivityTypes = async () => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/activities/types`, {
         headers: {
@@ -33,13 +52,15 @@ export default function Home() {
       });
       const data = await response.json();
       setActivityTypes(data);
-      console.log(data);
     };
     fetchActivityTypes();
   }, []);
 
   return (
     <div>
+      {showPreferencesModal && <PreferencesModal open={showPreferencesModal} handleClose={() => setShowPreferencesModal(false)} handleCloseWithSuccess={() => {setShowPreferencesModal(false);setPreferencesDefinedNotification(true)}} />}
+      {preferencesDefinedNotification && <CustomAlert title="Preferências definidas com sucesso" description="Sua preferências foram definidas com sucesso" variant='default' success={true} timer={4000} onClose={() => setPreferencesDefinedNotification(false)}/> }
+
       <Header />
       <main className="px-[110px]">
         <section className="pb-14">

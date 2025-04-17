@@ -16,8 +16,7 @@ interface MapComponentProps {
   mapId?: string;
 }
 
-
-const CustomMap= ({
+const CustomMap = ({
   onCoordinatesChange,
   defaultCenter,
   mapId,
