@@ -33,7 +33,7 @@ export default function ActivitiesByType({ typeName, typeId, onClick }: props) {
       </div>
       <div className="grid grid-cols-2 gap-y-3 gap-x-6">
         {activities.map((activity) => (
-          <div onClick={() => onClick(activity)}>
+          <div className="hover:cursor-pointer hover:scale-[1.02] transition-all duration-300" onClick={() => onClick(activity)}>
             <AltActivityCard key={activity.id} title={activity.title} scheduledDate={activity.scheduledDate} participantCount={activity.participantCount} image={activity.image} isPrivate={activity.private} />
           </div>
         ))}

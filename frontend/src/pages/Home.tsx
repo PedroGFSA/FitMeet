@@ -72,7 +72,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-4 gap-y-8 gap-x-3">
             {activities.map((activity) => (
-              <div key={activity.id} onClick={() => setShowViewActivityModal(activity)}>
+              <div className="hover:cursor-pointer hover:scale-[1.02] transition-all duration-300" key={activity.id} onClick={() => setShowViewActivityModal(activity)}>
                 <ActivityCard title={activity.title} scheduledDate={activity.scheduledDate} participantCount={activity.participantCount} image={activity.image} isPrivate={activity.private} />
               </div>
             ))}
