@@ -1,7 +1,7 @@
 import { CirclePlus } from "lucide-react";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import CreateActivity from "../common/CreateActivity";
+import CreateActivity from "./CreateActivity";
 function Header() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userLevel = user?.level;

@@ -158,6 +158,10 @@
   background-color: var(--color-primary-500);
 }
 
+.bg-gradient {
+  background: linear-gradient(to top, var(--color-primary-500), var(--color-primary-600));
+}
+
 button.bg-primary-500:hover {
   background-color: var(--color-primary-600);
 }

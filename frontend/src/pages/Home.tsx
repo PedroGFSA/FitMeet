@@ -1,5 +1,6 @@
 import { CustomAlert } from "@/components/common/CustomAlert";
-import PreferencesModal from "@/components/common/PreferencesModal";
+import PreferencesModal from "@/components/layout/PreferencesModal";
+import ViewActivity from "@/components/layout/ViewActivity";
 import ActivitiesByType from "@/components/layout/activitiesByType";
 import ActivityCard from "@/components/layout/activityCard";
 import Header from "@/components/layout/header";
@@ -13,6 +14,7 @@ export default function Home() {
   const [activityTypes, setActivityTypes] = useState<ActivityType[]>([]);
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
   const [preferencesDefinedNotification, setPreferencesDefinedNotification] = useState(false);
+  const [showViewActivityModal, setShowViewActivityModal] = useState<Activity | null>(null);
   const jwtToken = localStorage.getItem('token');
 
   useEffect(() => {
@@ -60,7 +62,7 @@ export default function Home() {
     <div>
       {showPreferencesModal && <PreferencesModal open={showPreferencesModal} handleClose={() => setShowPreferencesModal(false)} handleCloseWithSuccess={() => {setShowPreferencesModal(false);setPreferencesDefinedNotification(true)}} />}
       {preferencesDefinedNotification && <CustomAlert title="Preferências definidas com sucesso" description="Sua preferências foram definidas com sucesso" variant='default' success={true} timer={4000} onClose={() => setPreferencesDefinedNotification(false)}/> }
-
+      {showViewActivityModal && <ViewActivity activity={showViewActivityModal} handleClose={() => setShowViewActivityModal(null)} />}
       <Header />
       <main className="px-[110px]">
         <section className="pb-14">
@@ -70,7 +72,9 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-4 gap-y-8 gap-x-3">
             {activities.map((activity) => (
-              <ActivityCard key={activity.id} title={activity.title} scheduledDate={activity.scheduledDate} participantCount={activity.participantCount} image={activity.image} isPrivate={activity.private} />
+              <div key={activity.id} onClick={() => setShowViewActivityModal(activity)}>
+                <ActivityCard title={activity.title} scheduledDate={activity.scheduledDate} participantCount={activity.participantCount} image={activity.image} isPrivate={activity.private} />
+              </div>
             ))}
           </div>
         </section>
@@ -90,7 +94,7 @@ export default function Home() {
         <section className="pb-[27px]">
           <div className="grid grid-cols-2 gap-y-10 gap-x-7">
             {activityTypes.map((activityType) => (
-              <ActivitiesByType key={activityType.id} typeName={activityType.name} typeId={activityType.id} />
+              <ActivitiesByType key={activityType.id} typeName={activityType.name} typeId={activityType.id} onClick={(activity : Activity) => setShowViewActivityModal(activity)} />
             ))}
           </div>
         </section>

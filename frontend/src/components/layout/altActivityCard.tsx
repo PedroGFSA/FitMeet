@@ -13,8 +13,10 @@ function AltActivityCard({ title, scheduledDate, participantCount, image, isPriv
   return (
     <div className="flex gap-3">
       <div className="relative">
-        <img className="w-22 h-22 rounded-md object-cover" src={image} alt={title} />
-        {isPrivate && <i className="absolute top-1 left-1 bg-gradient-to-b from-[#00bc7d] to-[#009966] rounded-full h-5.5 w-5.5 flex items-center justify-center text-white"><Lock className="w-2.5 h-2.5" /></i>}
+        <div className="w-22 h-22 rounded-md object-cover">
+          <img className="w-full h-full rounded-md object-cover" src={image} alt={title} />
+          {isPrivate && <i className="absolute top-1 left-1 bg-gradient-to-b from-[#00bc7d] to-[#009966] rounded-full h-5.5 w-5.5 flex items-center justify-center text-white"><Lock className="w-2.5 h-2.5" /></i>}
+        </div>
       </div>
       <div className="flex flex-col mt-4">
         <h3 className="text-[#191919] text-[16px]/5 font-semibold tracking-normal mb-3">{title}</h3>

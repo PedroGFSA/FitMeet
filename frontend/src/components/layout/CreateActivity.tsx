@@ -7,10 +7,10 @@ import { useEffect, useState } from "react";
 import { ActivityType } from "@/types/activityType";
 import { APIProvider } from "@vis.gl/react-google-maps";
 import { useForm } from "react-hook-form";
-import CustomMap from "./CustomMap";
+import CustomMap from "../common/CustomMap";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from 'zod';
-import { CustomAlert } from "./CustomAlert";
+import { CustomAlert } from "../common/CustomAlert";
 
 const createActivitySchema = z.object({
   title: z.string().min(1),
@@ -51,7 +51,7 @@ export default function CreateActivity() {
       lat: position.coords.latitude,
       lng: position.coords.longitude
     });
-  }, (error) => {
+  }, () => {
     setAddress({
       lat: -10.9472,
       lng: -37.0731,

@@ -7,9 +7,10 @@ import { Button } from "../ui/button";
 interface props {
   typeName: string;
   typeId: string;
+  onClick: (activity: Activity) => void;
 }
 
-export default function ActivitiesByType({ typeName, typeId }: props) {
+export default function ActivitiesByType({ typeName, typeId, onClick }: props) {
   const jwtToken = localStorage.getItem('token');
   const [activities, setActivities] = useState<Activity[]>([]);
 
@@ -32,7 +33,9 @@ export default function ActivitiesByType({ typeName, typeId }: props) {
       </div>
       <div className="grid grid-cols-2 gap-y-3 gap-x-6">
         {activities.map((activity) => (
-          <AltActivityCard key={activity.id} title={activity.title} scheduledDate={activity.scheduledDate} participantCount={activity.participantCount} image={activity.image} isPrivate={activity.private} />
+          <div onClick={() => onClick(activity)}>
+            <AltActivityCard key={activity.id} title={activity.title} scheduledDate={activity.scheduledDate} participantCount={activity.participantCount} image={activity.image} isPrivate={activity.private} />
+          </div>
         ))}
       </div>
     </div>
